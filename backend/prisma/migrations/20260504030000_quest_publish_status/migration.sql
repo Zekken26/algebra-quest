@@ -1,0 +1,2 @@
+ALTER TABLE "Quest"
+ADD COLUMN "isPublished" BOOLEAN NOT NULL DEFAULT false;

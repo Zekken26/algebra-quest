@@ -1,0 +1,295 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TEACHER
+}
+
+enum ShopItemType {
+  HEALTH
+  HINT
+  SKIP
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  REMOVED
+}
+
+enum QuestAttemptStatus {
+  ACTIVE
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id         String   @id @default(cuid())
+  name       String
+  email      String   @unique
+  password   String
+  role       UserRole
+  avatarUrl  String?
+  xp         Int      @default(0)
+  coins      Int      @default(50)
+  hintTokens Int      @default(3)
+  hearts     Int      @default(3)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  taughtSections  ClassSection[]    @relation("TeacherSections")
+  studentSections Enrollment[]
+  questGuides     QuestGuide[]      @relation("TeacherQuestGuides")
+  quests          Quest[]           @relation("TeacherQuests")
+  progressRecords StudentProgress[]
+  answerAttempts  AnswerAttempt[]
+  shopPurchases   ShopPurchase[]
+  questAttempts   QuestAttempt[]
+  questionProgress QuestionProgress[]
+
+  @@index([role])
+}
+
+model ClassSection {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  code        String   @unique
+  teacherId   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  teacher         User              @relation("TeacherSections", fields: [teacherId], references: [id], onDelete: Cascade)
+  studentSections Enrollment[]
+  questGuides     QuestGuide[]
+  quests          Quest[]
+  progressRecords StudentProgress[]
+  answerAttempts  AnswerAttempt[]
+  questAttempts   QuestAttempt[]
+  questionProgress QuestionProgress[]
+
+  @@unique([teacherId, name])
+  @@index([teacherId])
+  @@map("Class")
+}
+
+model Enrollment {
+  id        String           @id @default(cuid())
+  studentId String
+  sectionId String
+  joinedAt  DateTime         @default(now())
+  status    EnrollmentStatus @default(ACTIVE)
+
+  student User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section ClassSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sectionId])
+  @@index([sectionId])
+  @@index([studentId])
+  @@index([status])
+  @@map("StudentSection")
+}
+
+model QuestGuide {
+  id               String   @id @default(cuid())
+  title            String
+  topic            String
+  shortExplanation String
+  exampleProblem   String
+  solutionSteps    String[]
+  tips             String[]
+  teacherId        String
+  sectionId        String   @map("classId")
+  questId          String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  teacher       User         @relation("TeacherQuestGuides", fields: [teacherId], references: [id], onDelete: Cascade)
+  section       ClassSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  featuredQuest Quest?       @relation("GuideFeaturedQuest", fields: [questId], references: [id], onDelete: SetNull)
+  quests        Quest[]      @relation("QuestGuideLink")
+
+  @@index([teacherId])
+  @@index([sectionId])
+  @@index([questId])
+}
+
+model Quest {
+  id                   String   @id @default(cuid())
+  title                String
+  worldName            String
+  topic                String
+  difficulty           String
+  requiredPuzzlePieces Int
+  maxHearts            Int      @default(3)
+  hintLimit            Int      @default(3)
+  xpReward             Int      @default(100)
+  coinReward           Int      @default(50)
+  levelNumber          Int
+  isPublished          Boolean  @default(false)
+  teacherId            String
+  sectionId            String   @map("classId")
+  guideId              String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  teacher         User              @relation("TeacherQuests", fields: [teacherId], references: [id], onDelete: Cascade)
+  section         ClassSection      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  guide           QuestGuide?       @relation("QuestGuideLink", fields: [guideId], references: [id], onDelete: SetNull)
+  guideReferences QuestGuide[]      @relation("GuideFeaturedQuest")
+  questions       QuestQuestion[]
+  progress        StudentProgress[]
+  answerAttempts  AnswerAttempt[]
+  shopPurchases   ShopPurchase[]
+  attempts        QuestAttempt[]
+  questionProgress QuestionProgress[]
+
+  @@unique([sectionId, levelNumber])
+  @@index([teacherId])
+  @@index([sectionId])
+  @@index([guideId])
+}
+
+model QuestQuestion {
+  id            String   @id @default(cuid())
+  questId       String
+  equation      String
+  choices       String[]
+  correctAnswer String
+  explanation   String   @default("")
+  solutionSteps String[]
+  difficulty    String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  quest          Quest           @relation(fields: [questId], references: [id], onDelete: Cascade)
+  answerAttempts AnswerAttempt[]
+  questionProgress QuestionProgress[]
+
+  @@index([questId])
+}
+
+model StudentProgress {
+  id              String    @id @default(cuid())
+  studentId       String
+  sectionId       String
+  questId         String
+  guideViewed     Boolean   @default(false)
+  questUnlocked   Boolean   @default(false)
+  questCompleted  Boolean   @default(false)
+  score           Int       @default(0)
+  xp              Int       @default(0)
+  coins           Int       @default(50)
+  coinsEarned     Int       @default(0)
+  puzzlePieces    Int       @default(0)
+  heartsRemaining Int       @default(3)
+  hintTokens      Int       @default(3)
+  hintsUsed       Int       @default(0)
+  correctAnswers  Int       @default(0)
+  wrongAnswers    Int       @default(0)
+  accuracy        Float     @default(0)
+  timeSpent       Int       @default(0)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  student User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section ClassSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  quest   Quest        @relation(fields: [questId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, sectionId, questId])
+  @@index([sectionId])
+  @@index([questId])
+}
+
+model QuestAttempt {
+  id          String             @id @default(cuid())
+  studentId   String
+  sectionId   String
+  questId     String
+  attemptNo   Int
+  status      QuestAttemptStatus @default(ACTIVE)
+  startedAt   DateTime           @default(now())
+  completedAt DateTime?
+  failedAt    DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  student          User               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section          ClassSection       @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  quest            Quest              @relation(fields: [questId], references: [id], onDelete: Cascade)
+  questionProgress QuestionProgress[]
+
+  @@unique([studentId, questId, attemptNo])
+  @@index([studentId, sectionId, questId, status])
+  @@index([sectionId])
+  @@index([questId])
+}
+
+model QuestionProgress {
+  id             String    @id @default(cuid())
+  attemptId      String
+  studentId      String
+  sectionId      String
+  questId        String
+  questionId     String
+  selectedAnswer String?
+  isCorrect      Boolean?
+  hintsRevealed  Int       @default(0)
+  answeredAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  attempt  QuestAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  student  User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section  ClassSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  quest    Quest         @relation(fields: [questId], references: [id], onDelete: Cascade)
+  question QuestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([attemptId, questionId])
+  @@index([studentId, sectionId, questId])
+  @@index([questionId])
+}
+
+model AnswerAttempt {
+  id             String   @id @default(cuid())
+  studentId      String
+  sectionId      String
+  questId        String
+  questionId     String
+  selectedAnswer String
+  isCorrect      Boolean
+  createdAt      DateTime @default(now())
+
+  student  User          @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section  ClassSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  quest    Quest         @relation(fields: [questId], references: [id], onDelete: Cascade)
+  question QuestQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([studentId, sectionId, questId])
+  @@index([studentId, questId])
+  @@index([questionId])
+}
+
+model ShopPurchase {
+  id        String       @id @default(cuid())
+  studentId String
+  questId   String?
+  itemType  ShopItemType
+  cost      Int
+  effect    String
+  createdAt DateTime     @default(now())
+
+  student User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  quest   Quest? @relation(fields: [questId], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([questId])
+}

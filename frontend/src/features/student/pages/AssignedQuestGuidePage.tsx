@@ -1,0 +1,171 @@
+import { Link, useNavigate } from "@tanstack/react-router";
+import { ArrowLeft, BookOpenText, Loader2, Lock, Play } from "lucide-react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
+import { ForestBackground } from "@/components/ForestBackground";
+import {
+  ApiRequestError,
+  fetchStudentAssignedQuest,
+  markQuestGuideViewed,
+  type StudentAssignedQuest,
+} from "@/features/student/services/studentService";
+
+type AssignedQuestGuidePageProps = {
+  questId: string;
+};
+
+export function AssignedQuestGuidePage({ questId }: AssignedQuestGuidePageProps) {
+  const navigate = useNavigate();
+  const [quest, setQuest] = useState<StudentAssignedQuest | null>(null);
+  const [lockedQuest, setLockedQuest] = useState<{ message: string; requiredLevel?: number } | null>(
+    null,
+  );
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadQuest = async () => {
+      try {
+        const nextQuest = await fetchStudentAssignedQuest(questId);
+
+        if (nextQuest.guide?.id) {
+          await markQuestGuideViewed(nextQuest.guide.id);
+        }
+
+        if (mounted) setQuest(nextQuest);
+      } catch (error) {
+        if (error instanceof ApiRequestError && error.locked) {
+          if (!mounted) return;
+          setLockedQuest({
+            message:
+              error.lockReason ??
+              `Complete Level ${error.requiredLevel ?? "the previous quest"} first.`,
+            requiredLevel: error.requiredLevel,
+          });
+          return;
+        }
+        toast.error(error instanceof Error ? error.message : "Unable to load quest guide.");
+        navigate({ to: "/student" });
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+
+    void loadQuest();
+
+    return () => {
+      mounted = false;
+    };
+  }, [navigate, questId]);
+
+  if (loading) {
+    return (
+      <ForestBackground>
+        <main className="grid min-h-screen place-items-center p-6">
+          <section className="quest-panel flex items-center gap-2 p-6 text-sm text-stone-foreground/75">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            Loading quest guide...
+          </section>
+        </main>
+      </ForestBackground>
+    );
+  }
+
+  if (lockedQuest) {
+    return (
+      <ForestBackground>
+        <main className="grid min-h-screen place-items-center p-6">
+          <section className="quest-panel max-w-md p-6 text-center">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-xl border border-primary/25 bg-black/25 text-primary">
+              <Lock className="h-7 w-7" />
+            </div>
+            <h1 className="mt-4 font-display text-3xl text-primary">Quest Locked</h1>
+            <p className="mt-2 text-sm text-stone-foreground/75">{lockedQuest.message}</p>
+            <Link to="/student" className="btn-game mt-5 text-sm">
+              Back to My Quests
+            </Link>
+          </section>
+        </main>
+      </ForestBackground>
+    );
+  }
+
+  if (!quest) return null;
+
+  const guide = quest.guide;
+
+  return (
+    <ForestBackground>
+      <main className="mx-auto min-h-screen max-w-5xl px-4 py-8">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <Link to="/student" className="btn-game btn-stone text-sm">
+            <ArrowLeft className="h-4 w-4" /> Dashboard
+          </Link>
+          <Link
+            to="/student/quests/$questId/game"
+            params={{ questId }}
+            className="btn-game text-sm"
+          >
+            <Play className="h-4 w-4" /> Start Quest
+          </Link>
+        </div>
+
+        <section className="quest-panel p-6">
+          <div className="mb-6 flex items-start justify-between gap-4">
+            <div>
+              <p className="font-display text-sm uppercase tracking-[0.24em] text-accent">
+                {quest.topic}
+              </p>
+              <h1 className="mt-2 font-display text-4xl text-primary glow-text">
+                {guide?.title ?? `${quest.title} Guide`}
+              </h1>
+              <p className="mt-3 text-stone-foreground/80">
+                {guide?.shortExplanation ?? "Review the quest topic before starting."}
+              </p>
+            </div>
+            <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-primary/30 bg-black/20 text-primary">
+              <BookOpenText className="h-6 w-6" />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-primary/20 bg-black/20 p-4">
+            <p className="text-xs uppercase tracking-wide text-stone-foreground/60">Example</p>
+            <p className="mt-1 font-display text-2xl text-primary">
+              {guide?.exampleProblem ?? quest.title}
+            </p>
+          </div>
+
+          <ol className="mt-5 space-y-3">
+            {(guide?.solutionSteps?.length
+              ? guide.solutionSteps
+              : [
+                  "Read each equation carefully.",
+                  "Use inverse operations.",
+                  "Keep both sides balanced.",
+                ]
+            ).map((step, index) => (
+              <li key={`${step}-${index}`} className="flex gap-3 text-sm text-stone-foreground/85">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-xs text-primary">
+                  {index + 1}
+                </span>
+                {step}
+              </li>
+            ))}
+          </ol>
+
+          {guide?.tips?.length ? (
+            <div className="mt-5 rounded-xl border border-accent/20 bg-accent/10 p-4 text-sm text-stone-foreground/80">
+              <p className="font-display text-primary">Tips</p>
+              <ul className="mt-2 list-disc space-y-1 pl-5">
+                {guide.tips.map((tip) => (
+                  <li key={tip}>{tip}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      </main>
+    </ForestBackground>
+  );
+}

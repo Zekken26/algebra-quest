@@ -1,0 +1,34 @@
+import { motion } from "framer-motion";
+import type { AlgebraQuestion } from "@/features/student/types/student.types";
+
+type EquationCardProps = {
+  moduleTitle: string;
+  question: AlgebraQuestion;
+};
+
+export function EquationCard({ moduleTitle, question }: EquationCardProps) {
+  return (
+    <motion.div
+      key={question.id}
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="quest-panel overflow-hidden"
+    >
+      <div className="border-b border-primary/20 bg-black/20 px-5 py-4">
+        <p className="font-display text-xs uppercase tracking-[0.22em] text-accent">
+          {moduleTitle}
+        </p>
+        <h1 className="font-display text-2xl text-primary sm:text-3xl">Equation Challenge</h1>
+      </div>
+      <div className="relative p-6 text-center sm:p-10">
+        <div className="absolute inset-x-10 top-8 h-24 rounded-full bg-primary/10 blur-3xl" />
+        <p className="relative mb-3 text-sm uppercase tracking-[0.28em] text-stone-foreground/60">
+          Solve for x
+        </p>
+        <p className="relative font-display text-5xl text-primary glow-text sm:text-7xl">
+          {question.prompt}
+        </p>
+      </div>
+    </motion.div>
+  );
+}

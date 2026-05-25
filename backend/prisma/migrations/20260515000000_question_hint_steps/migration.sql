@@ -1,0 +1,1 @@
+ALTER TABLE "QuestionProgress" ADD COLUMN "hintsRevealed" INTEGER NOT NULL DEFAULT 0;
