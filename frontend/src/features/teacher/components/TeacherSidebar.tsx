@@ -9,6 +9,7 @@ import {
   UserRound,
   Sparkles,
   Users,
+  X,
 } from "lucide-react";
 
 const navItems = [
@@ -22,21 +23,39 @@ const navItems = [
 
 type TeacherSidebarProps = {
   onLogout: () => void;
+  onNavigate?: () => void;
+  onClose?: () => void;
+  className?: string;
 };
 
-export function TeacherSidebar({ onLogout }: TeacherSidebarProps) {
+export function TeacherSidebar({ onLogout, onNavigate, onClose, className }: TeacherSidebarProps) {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
 
   return (
-    <aside className="teacher-sidebar sticky top-0 hidden h-dvh w-72 shrink-0 self-start border-r border-primary/15 bg-background/85 p-4 backdrop-blur-xl lg:block">
+    <aside
+      className={
+        className ??
+        "teacher-sidebar sticky top-0 hidden h-dvh w-72 shrink-0 self-start border-r border-primary/15 bg-background/85 p-4 backdrop-blur-xl lg:block"
+      }
+    >
       <div className="mb-8 flex items-center gap-3 rounded-2xl border border-primary/20 bg-black/20 p-3">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-[var(--gradient-gold)] text-gold-foreground">
+        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[var(--gradient-gold)] text-gold-foreground">
           <GraduationCap className="h-6 w-6" />
         </div>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="font-display text-lg text-primary">Sage Console</p>
-          <p className="text-xs text-stone-foreground/65">Algebra Quest LMS</p>
+          <p className="truncate text-xs text-stone-foreground/65">Algebra Quest LMS</p>
         </div>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-primary/20 bg-black/20 text-primary transition hover:bg-primary/10 lg:hidden"
+            aria-label="Close teacher navigation"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
       </div>
 
       <nav className="space-y-2">
@@ -49,6 +68,7 @@ export function TeacherSidebar({ onLogout }: TeacherSidebarProps) {
             <Link
               key={item.to}
               to={item.to}
+              onClick={onNavigate}
               className={`flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium transition ${
                 isActive
                   ? "bg-primary text-primary-foreground shadow-[var(--shadow-glow-gold)]"
@@ -74,7 +94,10 @@ export function TeacherSidebar({ onLogout }: TeacherSidebarProps) {
         </div>
         <button
           type="button"
-          onClick={onLogout}
+          onClick={() => {
+            onNavigate?.();
+            onLogout();
+          }}
           className="flex w-full items-center justify-center gap-2 rounded-xl border border-destructive/25 bg-destructive/10 px-3 py-3 text-sm font-semibold text-destructive transition hover:bg-destructive/20"
         >
           <LogOut className="h-4 w-4" /> Logout

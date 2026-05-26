@@ -155,7 +155,7 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
       setGuideMessage("Quest started. Solve each equation carefully.");
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unable to start quest.";
-      if (/quest guide/i.test(message)) {
+      if (error instanceof ApiRequestError && error.guideRequired) {
         toast.info("Review the Quest Guide before starting this quest.");
         navigate({ to: "/student/quests/$questId/lesson", params: { questId: quest.id } });
         return;
@@ -295,16 +295,19 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
       <ForestBackground>
         <main className="grid min-h-screen place-items-center p-6">
           <section className="quest-panel max-w-md p-6 text-center">
-            <h1 className="font-display text-3xl text-primary">Review the Quest Guide first</h1>
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-xl border border-primary/25 bg-black/25 text-primary">
+              <Lock className="h-7 w-7" />
+            </div>
+            <h1 className="mt-4 font-display text-3xl text-primary">Quest Guide Required</h1>
             <p className="mt-2 text-sm text-stone-foreground/75">
-              This teacher-assigned quest requires guide review before start.
+              Read the quest guide first before entering this challenge.
             </p>
             <Link
               to="/student/quests/$questId/lesson"
               params={{ questId }}
               className="btn-game mt-5 text-sm"
             >
-              Review Guide
+              Go to Quest Guide
             </Link>
           </section>
         </main>

@@ -18,6 +18,7 @@ export const studentQuestRouter = Router();
 studentQuestRouter.use(requireAuth, requireRole("STUDENT"));
 studentQuestRouter.get("/", questController.getStudentQuests);
 studentQuestRouter.get("/:questId", questController.getStudentQuest);
+studentQuestRouter.post("/:questId/guide/read", progressController.markQuestGuideRead);
 studentQuestRouter.post("/:questId/start", progressController.startQuest);
 studentQuestRouter.post("/:questId/answer", progressController.answerQuestion);
 studentQuestRouter.post("/:questId/use-hint", progressController.useHint);

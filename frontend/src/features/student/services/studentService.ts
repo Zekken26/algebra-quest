@@ -16,6 +16,7 @@ type ApiPayload<T> = {
     locked?: boolean;
     requiredLevel?: number;
     lockReason?: string;
+    guideRequired?: boolean;
   };
 };
 
@@ -24,6 +25,7 @@ export class ApiRequestError extends Error {
   locked?: boolean;
   requiredLevel?: number;
   lockReason?: string;
+  guideRequired?: boolean;
 
   constructor(error?: ApiPayload<unknown>["error"]) {
     super(error?.message ?? "Request failed. Please try again.");
@@ -32,6 +34,7 @@ export class ApiRequestError extends Error {
     this.locked = error?.locked;
     this.requiredLevel = error?.requiredLevel;
     this.lockReason = error?.lockReason;
+    this.guideRequired = error?.guideRequired;
   }
 }
 
@@ -314,6 +317,18 @@ export async function markQuestGuideViewed(guideId: string) {
     method: "POST",
   });
   return data.guideViewed;
+}
+
+export async function markAssignedQuestGuideRead(questId: string, classId?: string) {
+  const data = await apiRequest<{
+    progress: NonNullable<StudentAssignedQuest["progress"]>[number];
+  }>(
+    classId
+      ? `/student/classes/${classId}/quests/${questId}/guide/read`
+      : `/student/quests/${questId}/guide/read`,
+    { method: "POST" },
+  );
+  return data.progress;
 }
 
 export async function startAssignedQuest(questId: string, classId?: string) {

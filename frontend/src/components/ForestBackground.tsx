@@ -11,7 +11,7 @@ export function ForestBackground({ children, allowOverflow = false }: ForestBack
     <div
       className={cn(
         "relative min-h-screen w-full",
-        allowOverflow ? "overflow-visible" : "overflow-hidden",
+        allowOverflow ? "overflow-visible" : "overflow-x-clip overflow-y-visible",
       )}
     >
       <div

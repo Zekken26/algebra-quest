@@ -12,7 +12,6 @@ import {
   fetchStudentClassQuests,
   fetchStudentDashboard,
   getStudentProgress,
-  markQuestGuideViewed,
   toStudentProgressFromDashboard,
   type StudentAssignedQuest,
   type StudentClass,
@@ -35,7 +34,6 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
   const [classProgress, setClassProgress] = useState<StudentClassProgress | null>(null);
   const [leaderboard, setLeaderboard] = useState<StudentClassLeaderboardRow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [viewingGuideId, setViewingGuideId] = useState<string | null>(null);
 
   const load = async () => {
     const [nextClass, nextGuides, nextQuests, nextProgress, nextLeaderboard, dashboard] =
@@ -71,19 +69,6 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
       mounted = false;
     };
   }, [classId, navigate]);
-
-  const viewGuide = async (guide: StudentQuestGuide) => {
-    setViewingGuideId(guide.id);
-    try {
-      await markQuestGuideViewed(guide.id);
-      toast.success("Quest guide marked as viewed.");
-      await load();
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Unable to open guide.");
-    } finally {
-      setViewingGuideId(null);
-    }
-  };
 
   return (
     <ForestBackground>
@@ -161,23 +146,15 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                         {guide.shortExplanation}
                       </p>
                       <div className="mt-4 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          className="btn-game btn-stone text-sm"
-                          onClick={() => void viewGuide(guide)}
-                          disabled={viewingGuideId === guide.id}
-                        >
-                          {viewingGuideId === guide.id ? "Opening..." : "Mark Viewed"}
-                        </button>
                         {guide.featuredQuest?.id || guide.quests?.[0]?.id ? (
                           <Link
                             to="/student/quests/$questId/lesson"
                             params={{
                               questId: guide.featuredQuest?.id ?? guide.quests?.[0]?.id ?? "",
                             }}
-                            className="btn-game text-sm"
+                            className="btn-game btn-stone text-sm"
                           >
-                            Open Lesson
+                            <BookOpenText className="h-4 w-4" /> Open Guide
                           </Link>
                         ) : null}
                       </div>
@@ -206,6 +183,7 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                     const questProgress = quest.progress?.[0];
                     const completed = quest.status === "completed" || Boolean(questProgress?.questCompleted);
                     const locked = quest.status === "locked" || Boolean(quest.locked);
+                    const guideViewed = !quest.guideId || Boolean(questProgress?.guideViewed);
                     const started = Boolean(
                       questProgress?.questUnlocked &&
                         !questProgress.questCompleted &&
@@ -276,12 +254,28 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                                 {completed ? "View Results" : "Guide"}
                               </Link>
                               <Link
-                                to="/student/quests/$questId/game"
+                                to={
+                                  guideViewed
+                                    ? "/student/quests/$questId/game"
+                                    : "/student/quests/$questId/lesson"
+                                }
                                 params={{ questId: quest.id }}
                                 className="btn-game text-sm"
                               >
-                                {completed ? <CheckCircle2 className="h-4 w-4" /> : <Play className="h-4 w-4" />}{" "}
-                                {completed ? "View Results" : started ? "Continue Quest" : "Start Quest"}
+                                {completed ? (
+                                  <CheckCircle2 className="h-4 w-4" />
+                                ) : guideViewed ? (
+                                  <Play className="h-4 w-4" />
+                                ) : (
+                                  <Lock className="h-4 w-4" />
+                                )}{" "}
+                                {completed
+                                  ? "View Results"
+                                  : !guideViewed
+                                    ? "Read Guide First"
+                                    : started
+                                      ? "Continue Quest"
+                                      : "Start Quest"}
                               </Link>
                             </>
                           )}

@@ -16,6 +16,13 @@ export const startQuest = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: { progress } });
 });
 
+export const markQuestGuideRead = asyncHandler(async (req, res) => {
+  const { questId } = questIdParams.parse(req.params);
+  const progress = await progressService.markQuestGuideRead(req.user!.sub, questId);
+
+  res.status(200).json({ success: true, data: { progress } });
+});
+
 export const answerQuestion = asyncHandler(async (req, res) => {
   const { questId } = questIdParams.parse(req.params);
   const body = answerSchema.parse(req.body);
@@ -43,6 +50,13 @@ export const completeQuest = asyncHandler(async (req, res) => {
 export const startClassQuest = asyncHandler(async (req, res) => {
   const { classId, questId } = classQuestIdParams.parse(req.params);
   const progress = await progressService.startQuest(req.user!.sub, questId, classId);
+
+  res.status(200).json({ success: true, data: { progress } });
+});
+
+export const markClassQuestGuideRead = asyncHandler(async (req, res) => {
+  const { classId, questId } = classQuestIdParams.parse(req.params);
+  const progress = await progressService.markQuestGuideRead(req.user!.sub, questId, classId);
 
   res.status(200).json({ success: true, data: { progress } });
 });

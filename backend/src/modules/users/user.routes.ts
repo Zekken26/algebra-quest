@@ -17,6 +17,7 @@ userRouter.get("/classes/:classId/quests", requireAuth, requireRole("STUDENT"), 
 userRouter.get("/classes/:classId/quests/:questId", requireAuth, requireRole("STUDENT"), userController.getStudentClassQuest);
 userRouter.get("/classes/:classId/progress", requireAuth, requireRole("STUDENT"), userController.getStudentClassProgress);
 userRouter.get("/classes/:classId/leaderboard", requireAuth, requireRole("STUDENT"), userController.getStudentClassLeaderboard);
+userRouter.post("/classes/:classId/quests/:questId/guide/read", requireAuth, requireRole("STUDENT"), progressController.markClassQuestGuideRead);
 userRouter.post("/classes/:classId/quests/:questId/start", requireAuth, requireRole("STUDENT"), progressController.startClassQuest);
 userRouter.post("/classes/:classId/quests/:questId/answer", requireAuth, requireRole("STUDENT"), progressController.answerClassQuestQuestion);
 userRouter.post("/classes/:classId/quests/:questId/use-hint", requireAuth, requireRole("STUDENT"), progressController.useClassQuestHint);

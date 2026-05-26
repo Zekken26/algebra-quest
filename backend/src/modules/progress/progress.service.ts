@@ -126,7 +126,9 @@ export async function startQuest(studentId: string, questId: string, classId?: s
   ]);
 
   if (quest.guideId && !existing?.guideViewed) {
-    throw new AppError("View the Quest Guide before starting this quest.", 403, "GUIDE_REQUIRED");
+    throw new AppError("Please read the quest guide before starting the quest.", 403, "GUIDE_REQUIRED", {
+      guideRequired: true,
+    });
   }
 
   if (canContinueProgress(existing)) {
@@ -195,6 +197,29 @@ export async function startQuest(studentId: string, questId: string, classId?: s
     });
 
     return nextProgress;
+  });
+}
+
+export async function markQuestGuideRead(studentId: string, questId: string, classId?: string) {
+  const quest = await getAssignedQuestForStudent(studentId, questId, classId);
+  const student = await prisma.user.findUniqueOrThrow({ where: { id: studentId } });
+
+  return prisma.studentProgress.upsert({
+    where: { studentId_sectionId_questId: { studentId, sectionId: quest.sectionId, questId } },
+    create: {
+      studentId,
+      sectionId: quest.sectionId,
+      questId,
+      guideViewed: true,
+      questUnlocked: true,
+      heartsRemaining: quest.maxHearts,
+      hintTokens: student.hintTokens,
+      coins: student.coins,
+    },
+    update: {
+      guideViewed: true,
+      questUnlocked: true,
+    },
   });
 }
 

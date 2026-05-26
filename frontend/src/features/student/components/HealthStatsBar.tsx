@@ -9,25 +9,25 @@ export function HealthStatsBar({ progress }: HealthStatsBarProps) {
   const hearts = Math.max(0, Math.min(progress.hearts ?? 0, 3));
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="-mx-1 flex min-w-0 items-center gap-1.5 overflow-x-auto px-1 pb-1 sm:mx-0 sm:flex-wrap sm:gap-2 sm:overflow-visible sm:p-0">
       <span className="student-nav-chip" aria-label={`${hearts} hearts remaining`}>
         {Array.from({ length: 3 }).map((_, index) => (
           <Heart
             key={index}
-            className={`h-4 w-4 ${index < hearts ? "fill-destructive text-destructive" : "text-stone-foreground/30"}`}
+            className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${index < hearts ? "fill-destructive text-destructive" : "text-stone-foreground/30"}`}
           />
         ))}
       </span>
       <span className="student-nav-chip">
-        <Star className="h-4 w-4 text-primary" />
+        <Star className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
         <span>{progress.xp ?? 0} XP</span>
       </span>
       <span className="student-nav-chip">
-        <Coins className="h-4 w-4 text-primary" />
+        <Coins className="h-3.5 w-3.5 text-primary sm:h-4 sm:w-4" />
         <span>{progress.coins ?? 0}</span>
       </span>
       <span className="student-nav-chip">
-        <Lightbulb className="h-4 w-4 text-accent" />
+        <Lightbulb className="h-3.5 w-3.5 text-accent sm:h-4 sm:w-4" />
         <span>{progress.hintTokens ?? 0}</span>
       </span>
     </div>
