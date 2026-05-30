@@ -22,6 +22,7 @@ import {
   updateQuestionSchema,
   updateQuestSchema,
   updateSectionSchema,
+  updateStudentGradeSchema,
 } from "./teacher.validation";
 
 const classIdParamsSchema = z.object({ classId: z.string().trim().min(1) });
@@ -263,6 +264,19 @@ export const removeStudentFromClass = asyncHandler(async (req, res) => {
   const section = await teacherService.removeStudentFromSection(req.user!.sub, classId, studentId);
 
   res.status(200).json({ success: true, data: { section, class: section } });
+});
+
+export const updateStudentGrade = asyncHandler(async (req, res) => {
+  const { classId, studentId } = classStudentIdParamsSchema.parse(req.params);
+  const body = updateStudentGradeSchema.parse(req.body);
+  const enrollment = await teacherService.updateStudentGrade(
+    req.user!.sub,
+    classId,
+    studentId,
+    body.grade,
+  );
+
+  res.status(200).json({ success: true, data: { enrollment } });
 });
 
 export const getStudentsInClass = asyncHandler(async (req, res) => {

@@ -51,6 +51,10 @@ export const addStudentSchema = z
     message: "studentId or email is required.",
   });
 
+export const updateStudentGradeSchema = z.object({
+  grade: z.coerce.number().min(0).max(100).nullable(),
+});
+
 export const guideQuerySchema = z.object({
   sectionId: z.string().trim().min(1).optional(),
 });

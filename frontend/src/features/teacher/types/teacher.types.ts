@@ -27,6 +27,7 @@ export type TeacherStudent = {
   avatarUrl?: string | null;
   xp: number;
   coins: number;
+  grade?: number | null;
   accuracy: number;
   completion: number;
   quizAverage: number;

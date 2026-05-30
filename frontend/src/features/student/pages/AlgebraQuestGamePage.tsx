@@ -12,6 +12,7 @@ import { GuideDialogueBox } from "@/features/student/components/GuideDialogueBox
 import { HintPanel } from "@/features/student/components/HintPanel";
 import { LevelCompleteModal } from "@/features/student/components/LevelCompleteModal";
 import { PuzzleProgressBoard } from "@/features/student/components/PuzzleProgressBoard";
+import { playSound } from "@/shared/utils/sound";
 import {
   getStudentModule,
   getStudentModules,
@@ -179,6 +180,7 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
     setPicked(choice);
 
     if (choice === question.answer) {
+      playSound("correct");
       const nextPieces = pieces + 1;
       const nextScore = score + 10;
       const questCoinReward = module.requiredPieces * 10;
@@ -205,6 +207,7 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
       );
 
       if (questWillComplete) {
+        window.setTimeout(() => playSound("complete"), 360);
         persistLiveStats({ xpDelta: questXpReward, coins: nextCoins, relicPieces: nextPieces });
         saveCompletion(nextCoins, nextXp);
         window.setTimeout(() => setLevelComplete(true), 650);
@@ -218,6 +221,7 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
     }
 
     const nextHearts = hearts - 1;
+    playSound("wrong");
     setStatus("wrong");
     setHearts(nextHearts);
     setStreak(0);

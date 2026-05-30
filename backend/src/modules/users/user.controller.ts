@@ -38,7 +38,7 @@ export const getStudentDashboard = asyncHandler(async (req, res: Response) => {
 
 export const updateStudentProfile = asyncHandler(async (req, res: Response) => {
   const body = updateProfileSchema.parse(req.body);
-  const avatarUrl = req.file ? toAvatarUrl(req.file) : body.removeAvatar ? null : undefined;
+  const avatarUrl = req.file ? await toAvatarUrl(req.file, req.user!.sub) : body.removeAvatar ? null : undefined;
   const user = await userService.updateStudentProfile(req.user!.sub, {
     name: body.name,
     email: body.email,

@@ -91,7 +91,7 @@ function toCoinsEarned(
   return progress.coinsEarned ?? (progress.questCompleted ? coinReward : 0);
 }
 
-function shapeSection<T extends { studentSections?: Array<{ joinedAt: Date; status?: string; student: unknown }> }>(section: T) {
+function shapeSection<T extends { studentSections?: Array<{ joinedAt: Date; status?: string; grade?: number | null; student: unknown }> }>(section: T) {
   const { studentSections = [], ...rest } = section;
   return {
     ...rest,
@@ -99,6 +99,7 @@ function shapeSection<T extends { studentSections?: Array<{ joinedAt: Date; stat
       ...(enrollment.student as object),
       joinedAt: enrollment.joinedAt,
       status: enrollment.status,
+      grade: enrollment.grade ?? null,
     })),
   };
 }
@@ -197,7 +198,7 @@ async function loadSectionLeaderboardData(teacherId: string, sectionId: string) 
       name: true,
       studentSections: {
         where: { status: "ACTIVE" },
-        select: { joinedAt: true, student: { select: studentSelect } },
+        select: { joinedAt: true, grade: true, student: { select: studentSelect } },
         orderBy: { student: { name: "asc" } },
       },
       quests: {
@@ -486,7 +487,7 @@ export async function getStudentsInSection(teacherId: string, sectionId: string)
       code: true,
       studentSections: {
         where: { status: "ACTIVE" },
-        select: { joinedAt: true, status: true, student: { select: studentSelect } },
+        select: { joinedAt: true, status: true, grade: true, student: { select: studentSelect } },
         orderBy: { student: { name: "asc" } },
       },
       quests: { select: { id: true } },
@@ -519,9 +520,34 @@ export async function getStudentsInSection(teacherId: string, sectionId: string)
       ...enrollment.student,
       joinedAt: enrollment.joinedAt,
       status: enrollment.status,
+      grade: enrollment.grade,
       progressSummary: summarizeProgress(progressByStudent.get(enrollment.student.id) ?? [], section.quests.length),
     })),
   };
+}
+
+export async function updateStudentGrade(
+  teacherId: string,
+  sectionId: string,
+  studentId: string,
+  grade: number | null,
+) {
+  await assertTeacherOwnsSection(teacherId, sectionId);
+
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { studentId_sectionId: { studentId, sectionId } },
+    select: { id: true, status: true },
+  });
+
+  if (!enrollment || enrollment.status === "REMOVED") {
+    throw new AppError("Student is not enrolled in this section.", 404, "ENROLLMENT_NOT_FOUND");
+  }
+
+  return prisma.enrollment.update({
+    where: { studentId_sectionId: { studentId, sectionId } },
+    data: { grade },
+    select: { id: true, studentId: true, sectionId: true, grade: true },
+  });
 }
 
 export async function regenerateSectionCode(teacherId: string, sectionId: string) {
@@ -1026,6 +1052,7 @@ export async function getClassDetails(teacherId: string, classId: string) {
     return {
       ...enrollment.student,
       joinedAt: enrollment.joinedAt,
+      grade: enrollment.grade,
       progressSummary: summary,
       currentQuest: currentQuest ? { id: currentQuest.id, title: currentQuest.title, topic: currentQuest.topic } : null,
       status: summary.accuracy >= 90 ? "thriving" : summary.accuracy < 70 ? "at-risk" : "steady",

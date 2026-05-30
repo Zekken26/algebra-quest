@@ -1,7 +1,14 @@
 import { Outlet, Link, createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { queryClient } from "@/lib/queryClient";
+import {
+  isSoundControl,
+  playSound,
+  startBackgroundMusic,
+  stopBackgroundMusic,
+} from "@/shared/utils/sound";
 
 import appCss from "../styles.css?url";
 
@@ -97,6 +104,22 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  useEffect(() => {
+    const startAudio = (event: PointerEvent) => {
+      startBackgroundMusic();
+
+      if (isSoundControl(event.target)) {
+        playSound("ui");
+      }
+    };
+
+    window.addEventListener("pointerdown", startAudio);
+    return () => {
+      stopBackgroundMusic();
+      window.removeEventListener("pointerdown", startAudio);
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

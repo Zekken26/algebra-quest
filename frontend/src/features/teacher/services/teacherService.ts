@@ -42,6 +42,7 @@ export type TeacherSection = {
     avatarUrl?: string | null;
     xp?: number;
     coins?: number;
+    grade?: number | null;
     joinedAt?: string;
     progressSummary?: {
       completionProgress: number;
@@ -178,6 +179,7 @@ function toTeacherStudent(
     avatar: initials(student.name),
     xp: student.xp ?? progress?.xpEarned ?? 0,
     coins: student.coins ?? progress?.coinsEarned ?? 0,
+    grade: student.grade ?? null,
     accuracy,
     completion,
     quizAverage: accuracy,
@@ -429,6 +431,16 @@ export async function removeStudentFromSection(sectionId: string, studentId: str
     `/teacher/classes/${sectionId}/students/${studentId}`,
     {
       method: "DELETE",
+    },
+  );
+}
+
+export async function updateStudentGrade(sectionId: string, studentId: string, grade: number | null) {
+  return apiRequest<{ enrollment: { id: string; studentId: string; sectionId: string; grade: number | null } }>(
+    `/teacher/classes/${sectionId}/students/${studentId}/grade`,
+    {
+      method: "PUT",
+      body: JSON.stringify({ grade }),
     },
   );
 }

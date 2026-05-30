@@ -21,6 +21,7 @@ teacherRouter.put("/classes/:classId", teacherController.updateClass);
 teacherRouter.delete("/classes/:classId", teacherController.deleteClass);
 teacherRouter.get("/classes/:classId/students", teacherController.getStudentsInClass);
 teacherRouter.post("/classes/:classId/students", teacherController.addStudentToClass);
+teacherRouter.put("/classes/:classId/students/:studentId/grade", teacherController.updateStudentGrade);
 teacherRouter.delete("/classes/:classId/students/:studentId", teacherController.removeStudentFromClass);
 teacherRouter.post("/classes/:classId/quest-guides", teacherController.createGuideForClass);
 teacherRouter.get("/classes/:classId/quest-guides", teacherController.getGuidesForClass);

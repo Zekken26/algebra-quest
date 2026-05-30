@@ -10,6 +10,7 @@ import {
   getStudentModule,
   updateStudentProgress,
 } from "@/features/student/services/studentService";
+import { playSound } from "@/shared/utils/sound";
 import type { QuizResult } from "@/features/student/types/student.types";
 
 type ModuleQuizPageProps = {
@@ -72,6 +73,11 @@ export function ModuleQuizPage({ moduleId }: ModuleQuizPageProps) {
     setResult(quizResult);
   };
 
+  const chooseAnswer = (answer: string) => {
+    setAnswers((previous) => ({ ...previous, [currentQuestion.id]: answer }));
+    playSound(answer === currentQuestion.answer ? "correct" : "wrong");
+  };
+
   const retake = () => {
     setAnswers({});
     setCurrentIndex(0);
@@ -112,9 +118,7 @@ export function ModuleQuizPage({ moduleId }: ModuleQuizPageProps) {
           index={currentIndex}
           total={module.quiz.length}
           selectedAnswer={selectedAnswer}
-          onSelect={(answer) =>
-            setAnswers((previous) => ({ ...previous, [currentQuestion.id]: answer }))
-          }
+          onSelect={chooseAnswer}
         />
 
         <div className="mt-6 flex flex-wrap justify-between gap-3">

@@ -5,6 +5,7 @@ import {
   Copy,
   Pencil,
   Plus,
+  Save,
   Search,
   Trash2,
   Trophy,
@@ -23,6 +24,7 @@ import {
   fetchStudentProgress,
   fetchTeacherClassDetails,
   removeStudentFromSection,
+  updateStudentGrade,
   updateTeacherSection,
   type TeacherClassDetails,
   type TeacherSection,
@@ -57,6 +59,7 @@ function toTeacherStudent(
     avatar: initials(student.name),
     xp: student.xp ?? student.progressSummary?.xpEarned ?? 0,
     coins: student.coins ?? student.progressSummary?.coinsEarned ?? 0,
+    grade: student.grade ?? null,
     accuracy,
     completion,
     quizAverage: accuracy,
@@ -81,6 +84,8 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
   const [saving, setSaving] = useState(false);
   const [creatingQuest, setCreatingQuest] = useState(false);
   const [creatingGuide, setCreatingGuide] = useState(false);
+  const [gradeDrafts, setGradeDrafts] = useState<Record<string, string>>({});
+  const [savingGradeId, setSavingGradeId] = useState<string | null>(null);
   const [guideDraft, setGuideDraft] = useState({
     title: "",
     topic: "",
@@ -101,6 +106,18 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
       toast.error(error instanceof Error ? error.message : "Unable to load class details."),
     );
   }, [classId]);
+
+  useEffect(() => {
+    if (!details) return;
+    setGradeDrafts(
+      Object.fromEntries(
+        details.students.map((student) => [
+          student.id,
+          student.grade === null || student.grade === undefined ? "" : String(student.grade),
+        ]),
+      ),
+    );
+  }, [details]);
 
   const students = useMemo(
     () => details?.students.map((student) => toTeacherStudent(student, classId)) ?? [],
@@ -205,6 +222,36 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
       );
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Unable to load student progress.");
+    }
+  };
+
+  const saveGrade = async (student: TeacherStudent) => {
+    const rawGrade = gradeDrafts[student.id]?.trim() ?? "";
+    const grade = rawGrade === "" ? null : Number(rawGrade);
+
+    if (grade !== null && (!Number.isFinite(grade) || grade < 0 || grade > 100)) {
+      toast.error("Grade must be between 0 and 100.");
+      return;
+    }
+
+    setSavingGradeId(student.id);
+    try {
+      await updateStudentGrade(classId, student.id, grade);
+      setDetails((current) =>
+        current
+          ? {
+              ...current,
+              students: current.students.map((item) =>
+                item.id === student.id ? { ...item, grade } : item,
+              ),
+            }
+          : current,
+      );
+      toast.success(grade === null ? "Grade cleared." : `${student.name}'s grade saved.`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to save grade.");
+    } finally {
+      setSavingGradeId(null);
     }
   };
 
@@ -446,6 +493,7 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
                 <th className="p-4">Email</th>
                 <th className="p-4">XP</th>
                 <th className="p-4">Coins</th>
+                <th className="p-4">Grade</th>
                 <th className="p-4">Accuracy</th>
                 <th className="p-4">Progress %</th>
                 <th className="p-4">Current Quest</th>
@@ -465,6 +513,35 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
                   <td className="p-4 text-stone-foreground/70">{student.email}</td>
                   <td className="p-4">{student.xp}</td>
                   <td className="p-4">{student.coins}</td>
+                  <td className="p-4">
+                    <div className="flex min-w-36 items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        className="teacher-input h-10 w-20 px-3 py-2"
+                        aria-label={`Grade for ${student.name}`}
+                        placeholder="--"
+                        value={gradeDrafts[student.id] ?? ""}
+                        onChange={(event) =>
+                          setGradeDrafts((current) => ({
+                            ...current,
+                            [student.id]: event.target.value,
+                          }))
+                        }
+                      />
+                      <button
+                        type="button"
+                        className="btn-game btn-stone text-xs"
+                        onClick={() => void saveGrade(student)}
+                        disabled={savingGradeId === student.id}
+                      >
+                        <Save className="h-3.5 w-3.5" />
+                        {savingGradeId === student.id ? "Saving" : "Save"}
+                      </button>
+                    </div>
+                  </td>
                   <td className="p-4">{student.accuracy}%</td>
                   <td className="p-4">{student.completion}%</td>
                   <td className="p-4 text-stone-foreground/70">{student.currentQuest}</td>

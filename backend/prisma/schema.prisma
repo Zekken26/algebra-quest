@@ -85,6 +85,7 @@ model Enrollment {
   sectionId String
   joinedAt  DateTime         @default(now())
   status    EnrollmentStatus @default(ACTIVE)
+  grade     Float?
 
   student User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   section ClassSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)

@@ -1,0 +1,1 @@
+ALTER TABLE "StudentSection" ADD COLUMN "grade" DOUBLE PRECISION;

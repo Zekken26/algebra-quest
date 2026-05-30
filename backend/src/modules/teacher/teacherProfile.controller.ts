@@ -52,7 +52,8 @@ export const uploadAvatar = asyncHandler(async (req, res) => {
     throw new AppError("Avatar image is required.", 400, "AVATAR_REQUIRED");
   }
 
-  const profile = await teacherProfileService.updateTeacherAvatar(req.user!.sub, toAvatarUrl(req.file));
+  const avatarUrl = await toAvatarUrl(req.file, req.user!.sub);
+  const profile = await teacherProfileService.updateTeacherAvatar(req.user!.sub, avatarUrl);
 
   res.status(200).json({ success: true, data: { profile } });
 });

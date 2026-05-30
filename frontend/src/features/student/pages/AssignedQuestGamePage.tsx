@@ -10,6 +10,7 @@ import { GuideDialogueBox } from "@/features/student/components/GuideDialogueBox
 import { HintPanel } from "@/features/student/components/HintPanel";
 import { PuzzleProgressBoard } from "@/features/student/components/PuzzleProgressBoard";
 import { StudentNavbar } from "@/features/student/components/StudentNavbar";
+import { playSound } from "@/shared/utils/sound";
 import {
   ApiRequestError,
   answerAssignedQuestQuestion,
@@ -174,12 +175,14 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
     try {
       const result = await answerAssignedQuestQuestion(quest.id, question.id, choice);
       syncProgress(result.progress, quest.id, result.user);
+      playSound(result.isCorrect ? "correct" : "wrong");
       setFeedback(result.isCorrect ? "good" : "bad");
       setStatus(result.isCorrect ? "correct" : "wrong");
       setStreak((current) => (result.isCorrect ? current + 1 : 0));
       setGuideMessage(result.feedback);
 
       if (result.progress.questCompleted) {
+        window.setTimeout(() => playSound("complete"), 360);
         const completedProgress = await completeAssignedQuest(quest.id);
         syncProgress(completedProgress, quest.id);
         toast.success("Quest completed.");
