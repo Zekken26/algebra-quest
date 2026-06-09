@@ -60,6 +60,11 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
   const [coins, setCoins] = useState(initialProgress.coins);
   const [pieces, setPieces] = useState(startingPieces);
   const [questionIndex, setQuestionIndex] = useState(startingQuestionIndex);
+  const [shuffledQuestionIds, setShuffledQuestionIds] = useState<string[]>([]);
+  const [answeredQuestionIds, setAnsweredQuestionIds] = useState<string[]>(
+    moduleProgress?.answeredQuestionIds ?? [],
+  );
+  const [pendingAnsweredId, setPendingAnsweredId] = useState<string | null>(null);
   const [picked, setPicked] = useState<string | null>(null);
   const [status, setStatus] = useState<QuizStatus>("idle");
   const [streak, setStreak] = useState(0);
@@ -74,7 +79,23 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
   const [levelComplete, setLevelComplete] = useState(false);
   const [levelFailed, setLevelFailed] = useState(isResumingAttempt && startingHearts <= 0);
 
-  const question = module?.gameQuestions[questionIndex % (module?.gameQuestions.length || 1)];
+  useEffect(() => {
+    if (module?.gameQuestions && shuffledQuestionIds.length === 0) {
+      const ids = module.gameQuestions.map((q) => q.id);
+      setShuffledQuestionIds(ids.sort(() => Math.random() - 0.5));
+    }
+  }, [module?.id, module?.gameQuestions, shuffledQuestionIds.length]);
+
+  const unansweredShuffledIds = useMemo(() => {
+    const answeredIds = new Set(answeredQuestionIds);
+    return shuffledQuestionIds.filter((id) => !answeredIds.has(id));
+  }, [shuffledQuestionIds, answeredQuestionIds]);
+
+  const question = useMemo(() => {
+    if (!module?.gameQuestions || unansweredShuffledIds.length === 0) return undefined;
+    const qId = unansweredShuffledIds[questionIndex % Math.max(unansweredShuffledIds.length, 1)];
+    return module.gameQuestions.find((q) => q.id === qId);
+  }, [module?.gameQuestions, unansweredShuffledIds, questionIndex]);
 
   useEffect(() => {
     if (module && moduleProgress?.status === "locked") {
@@ -146,6 +167,7 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
       xpDelta?: number;
       relicPieces?: number;
       questionIndex?: number;
+      answeredQuestionId?: string;
     },
   ) => {
     updateStudentProgress((progress) => {
@@ -154,6 +176,10 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
       const relicPieces = nextStats.relicPieces ?? moduleProgress.relicPieces;
       const relicCompletion = Math.round((relicPieces / module.requiredPieces) * 100);
 
+      const nextAnsweredQuestionIds = nextStats.answeredQuestionId
+        ? [...(moduleProgress.answeredQuestionIds ?? []), nextStats.answeredQuestionId]
+        : moduleProgress.answeredQuestionIds;
+
       nextModules[module.id] = {
         ...moduleProgress,
         status: moduleProgress.status === "locked" ? "unlocked" : moduleProgress.status,
@@ -161,6 +187,7 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
         guideViewed: true,
         relicPieces,
         currentQuestionIndex: nextStats.questionIndex ?? moduleProgress.currentQuestionIndex,
+        answeredQuestionIds: nextAnsweredQuestionIds,
       };
 
       return {
@@ -176,7 +203,7 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
   };
 
   const choose = (choice: string) => {
-    if (!canAct) return;
+    if (!canAct || !question) return;
     setPicked(choice);
 
     if (choice === question.answer) {
@@ -208,13 +235,15 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
 
       if (questWillComplete) {
         window.setTimeout(() => playSound("complete"), 360);
-        persistLiveStats({ xpDelta: questXpReward, coins: nextCoins, relicPieces: nextPieces });
+        persistLiveStats({ xpDelta: questXpReward, coins: nextCoins, relicPieces: nextPieces, answeredQuestionId: question.id });
         saveCompletion(nextCoins, nextXp);
         window.setTimeout(() => setLevelComplete(true), 650);
       } else {
+        setPendingAnsweredId(question.id);
         persistLiveStats({
           relicPieces: nextPieces,
-          questionIndex: (questionIndex + 1) % module.gameQuestions.length,
+          questionIndex,
+          answeredQuestionId: question.id,
         });
       }
       return;
@@ -236,14 +265,20 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
 
   const advanceToNextQuestion = () => {
     setPicked(null);
+    const wasCorrect = status === "correct";
     setStatus("idle");
     setFeedback("neutral");
     setGuideMessage("The path shifts. Solve the next equation to recover another relic piece.");
-    setQuestionIndex((index) => {
-      const nextIndex = (index + 1) % module.gameQuestions.length;
-      persistLiveStats({ questionIndex: nextIndex });
-      return nextIndex;
-    });
+    if (wasCorrect && pendingAnsweredId) {
+      setAnsweredQuestionIds((prev) => [...prev, pendingAnsweredId]);
+      setPendingAnsweredId(null);
+    } else if (!wasCorrect) {
+      setQuestionIndex((index) => {
+        const nextIndex = index + 1;
+        persistLiveStats({ questionIndex: nextIndex });
+        return nextIndex;
+      });
+    }
   };
 
   const nextQuestion = () => {
@@ -346,10 +381,15 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
             progress.modules[module.id].status === "completed"
               ? "unlocked"
               : progress.modules[module.id].status,
+          answeredQuestionIds: progress.modules[module.id].gameCompleted
+            ? []
+            : progress.modules[module.id].answeredQuestionIds,
         },
       },
     }));
     if (moduleProgress?.gameCompleted) {
+      setAnsweredQuestionIds([]);
+      setPendingAnsweredId(null);
       setPieces(0);
       setQuestionIndex(0);
       setScore(0);
@@ -380,9 +420,12 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
             progress.modules[module.id].status === "completed"
               ? "unlocked"
               : progress.modules[module.id].status,
+          answeredQuestionIds: [],
         },
       },
     }));
+    setAnsweredQuestionIds([]);
+    setPendingAnsweredId(null);
     setScore(0);
     setXpEarned(0);
     setXp(getStudentProgress().xp);

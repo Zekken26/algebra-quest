@@ -65,6 +65,7 @@ export type StudentProgress = {
       relicPieces: number;
       currentQuestionIndex: number;
       badge?: string;
+      answeredQuestionIds?: string[];
     }
   >;
 };

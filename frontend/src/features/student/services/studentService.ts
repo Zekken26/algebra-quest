@@ -84,6 +84,7 @@ export type StudentAssignedQuest = {
     tips?: string[];
   } | null;
   questions?: Array<{ id: string; equation: string; choices: string[]; difficulty: string }>;
+  answeredQuestionIds?: string[];
   progress?: Array<{
     id: string;
     guideViewed: boolean;
@@ -711,6 +712,7 @@ const makeModuleProgress = (status: "locked" | "unlocked" | "completed") => ({
   gameCompleted: status === "completed",
   relicPieces: 0,
   currentQuestionIndex: 0,
+  answeredQuestionIds: [],
 });
 
 const createInitialProgress = (): StudentProgress => ({
@@ -755,6 +757,7 @@ function mergeProgress(progress: StudentProgress): StudentProgress {
             0,
             progress.modules?.[module.id]?.currentQuestionIndex ?? 0,
           ),
+          answeredQuestionIds: progress.modules?.[module.id]?.answeredQuestionIds ?? [],
         };
 
         return [

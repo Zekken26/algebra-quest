@@ -238,21 +238,30 @@ export async function getStudentSectionQuest(studentId: string, sectionId: strin
   await ensureStudentInSection(studentId, sectionId);
   await assertStudentCanAccessQuest(studentId, sectionId, questId);
 
-  const quest = await prisma.quest.findFirst({
-    where: { id: questId, sectionId, isPublished: true },
-    include: {
-      section: { select: { id: true, name: true } },
-      guide: true,
-      questions: { select: { id: true, equation: true, choices: true, difficulty: true } },
-      progress: { where: { studentId, sectionId } },
-    },
-  });
+  const [quest, activeAttempt] = await Promise.all([
+    prisma.quest.findFirst({
+      where: { id: questId, sectionId, isPublished: true },
+      include: {
+        section: { select: { id: true, name: true } },
+        guide: true,
+        questions: { select: { id: true, equation: true, choices: true, difficulty: true } },
+        progress: { where: { studentId, sectionId } },
+      },
+    }),
+    prisma.questAttempt.findFirst({
+      where: { studentId, sectionId, questId, status: "ACTIVE" },
+      include: { questionProgress: { where: { isCorrect: true }, select: { questionId: true } } },
+    }),
+  ]);
 
   if (!quest) {
     throw new AppError("Quest is not assigned to your section.", 403, "QUEST_NOT_ASSIGNED");
   }
 
-  return applyQuestProgressionStatus([quest])[0];
+  const appliedQuest = applyQuestProgressionStatus([quest])[0];
+  const answeredQuestionIds = activeAttempt?.questionProgress.map((qp) => qp.questionId) ?? [];
+
+  return { ...appliedQuest, answeredQuestionIds };
 }
 
 export async function getStudentSectionProgress(studentId: string, sectionId: string) {

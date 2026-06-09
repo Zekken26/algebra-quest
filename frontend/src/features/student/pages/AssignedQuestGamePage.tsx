@@ -43,9 +43,11 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
   const [starting, setStarting] = useState(false);
   const [started, setStarted] = useState(false);
   const [questionIndex, setQuestionIndex] = useState(0);
+  const [shuffledQuestionIds, setShuffledQuestionIds] = useState<string[]>([]);
   const [picked, setPicked] = useState<string | null>(null);
   const [status, setStatus] = useState<QuizStatus>("idle");
   const [answering, setAnswering] = useState(false);
+  const [pendingAnsweredId, setPendingAnsweredId] = useState<string | null>(null);
   const [streak, setStreak] = useState(0);
   const [feedback, setFeedback] = useState<"good" | "bad" | "neutral">("neutral");
   const [guideMessage, setGuideMessage] = useState("Choose an answer to recover a relic piece.");
@@ -96,11 +98,6 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
             nextProgress.heartsRemaining > 0,
           ),
         );
-        if (nextProgress && nextQuest.questions?.length) {
-          setQuestionIndex(
-            (nextProgress.correctAnswers + nextProgress.wrongAnswers) % nextQuest.questions.length,
-          );
-        }
       } catch (error) {
         if (error instanceof ApiRequestError && error.locked) {
           if (!mounted) return;
@@ -126,8 +123,23 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
     };
   }, [navigate, questId]);
 
-  const questions = quest?.questions ?? [];
-  const question = questions[questionIndex % Math.max(questions.length, 1)];
+  useEffect(() => {
+    if (quest?.questions && shuffledQuestionIds.length === 0) {
+      const ids = quest.questions.map((q) => q.id);
+      setShuffledQuestionIds(ids.sort(() => Math.random() - 0.5));
+    }
+  }, [quest?.id, quest?.questions, shuffledQuestionIds.length]);
+
+  const unansweredShuffledIds = useMemo(() => {
+    const answeredIds = new Set(quest?.answeredQuestionIds ?? []);
+    return shuffledQuestionIds.filter((id) => !answeredIds.has(id));
+  }, [shuffledQuestionIds, quest?.answeredQuestionIds]);
+
+  const question = useMemo(() => {
+    if (!quest?.questions || unansweredShuffledIds.length === 0) return undefined;
+    const qId = unansweredShuffledIds[questionIndex % Math.max(unansweredShuffledIds.length, 1)];
+    return quest.questions.find((q) => q.id === qId);
+  }, [quest?.questions, unansweredShuffledIds, questionIndex]);
   const guideViewed = !quest?.guideId || Boolean(progress?.guideViewed);
   const canAct =
     started && status === "idle" && !answering && Boolean(question) && !progress?.questCompleted;
@@ -181,6 +193,10 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
       setStreak((current) => (result.isCorrect ? current + 1 : 0));
       setGuideMessage(result.feedback);
 
+      if (result.isCorrect) {
+        setPendingAnsweredId(question.id);
+      }
+
       if (result.progress.questCompleted) {
         window.setTimeout(() => playSound("complete"), 360);
         const completedProgress = await completeAssignedQuest(quest.id);
@@ -198,10 +214,20 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
 
   const nextQuestion = () => {
     setPicked(null);
+    const wasCorrect = status === "correct";
     setStatus("idle");
     setFeedback("neutral");
     setGuideMessage("The path shifts. Solve the next equation.");
-    setQuestionIndex((index) => (index + 1) % Math.max(questions.length, 1));
+    if (wasCorrect && pendingAnsweredId) {
+      setQuest((prev) =>
+        prev
+          ? { ...prev, answeredQuestionIds: [...(prev.answeredQuestionIds ?? []), pendingAnsweredId] }
+          : null,
+      );
+      setPendingAnsweredId(null);
+    } else if (!wasCorrect) {
+      setQuestionIndex((index) => index + 1);
+    }
   };
 
   const refreshQuestProgress = async () => {

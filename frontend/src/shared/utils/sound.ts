@@ -13,21 +13,21 @@ type AudioWindow = Window &
   };
 
 const soundSteps: Record<SoundName, OscillatorStep[]> = {
-  ui: [{ frequency: 520, duration: 0.06, type: "triangle", gain: 0.08 }],
+  ui: [{ frequency: 520, duration: 0.06, type: "triangle", gain: 0.16 }],
   correct: [
-    { frequency: 660, duration: 0.08, type: "sine", gain: 0.14 },
-    { frequency: 880, duration: 0.1, type: "sine", gain: 0.14 },
-    { frequency: 1175, duration: 0.12, type: "triangle", gain: 0.1 },
+    { frequency: 660, duration: 0.08, type: "sine", gain: 0.28 },
+    { frequency: 880, duration: 0.1, type: "sine", gain: 0.28 },
+    { frequency: 1175, duration: 0.12, type: "triangle", gain: 0.2 },
   ],
   wrong: [
-    { frequency: 220, duration: 0.11, type: "sawtooth", gain: 0.1 },
-    { frequency: 165, duration: 0.16, type: "triangle", gain: 0.12 },
+    { frequency: 220, duration: 0.11, type: "sawtooth", gain: 0.2 },
+    { frequency: 165, duration: 0.16, type: "triangle", gain: 0.24 },
   ],
   complete: [
-    { frequency: 523, duration: 0.09, type: "triangle", gain: 0.12 },
-    { frequency: 659, duration: 0.09, type: "triangle", gain: 0.12 },
-    { frequency: 784, duration: 0.11, type: "triangle", gain: 0.12 },
-    { frequency: 1047, duration: 0.18, type: "sine", gain: 0.12 },
+    { frequency: 523, duration: 0.09, type: "triangle", gain: 0.24 },
+    { frequency: 659, duration: 0.09, type: "triangle", gain: 0.24 },
+    { frequency: 784, duration: 0.11, type: "triangle", gain: 0.24 },
+    { frequency: 1047, duration: 0.18, type: "sine", gain: 0.24 },
   ],
 };
 
@@ -51,7 +51,7 @@ function playStep(context: AudioContext, step: OscillatorStep, startTime: number
   const oscillator = context.createOscillator();
   const gain = context.createGain();
   const duration = step.duration;
-  const peakGain = step.gain ?? 0.06;
+  const peakGain = step.gain ?? 0.12;
 
   oscillator.type = step.type ?? "sine";
   oscillator.frequency.setValueAtTime(step.frequency, startTime);
@@ -85,7 +85,7 @@ export function playSound(name: SoundName) {
 function playMusicNote(context: AudioContext, frequency: number, startTime: number) {
   if (!musicGain) {
     musicGain = context.createGain();
-    musicGain.gain.setValueAtTime(0.07, context.currentTime);
+    musicGain.gain.setValueAtTime(0.14, context.currentTime);
     musicGain.connect(context.destination);
   }
 
@@ -97,7 +97,7 @@ function playMusicNote(context: AudioContext, frequency: number, startTime: numb
   oscillator.frequency.setValueAtTime(frequency, startTime);
 
   noteGain.gain.setValueAtTime(0.0001, startTime);
-  noteGain.gain.exponentialRampToValueAtTime(0.32, startTime + 0.03);
+  noteGain.gain.exponentialRampToValueAtTime(0.64, startTime + 0.03);
   noteGain.gain.exponentialRampToValueAtTime(0.0001, startTime + duration);
 
   oscillator.connect(noteGain);
