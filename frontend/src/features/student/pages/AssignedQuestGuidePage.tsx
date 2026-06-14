@@ -14,12 +14,23 @@ type AssignedQuestGuidePageProps = {
   questId: string;
 };
 
+function getQuestImageUrl(url?: string | null) {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  const baseUrl = (import.meta.env.VITE_API_URL ?? "http://localhost:5000/api").replace(
+    /\/api$/,
+    "",
+  );
+  return `${baseUrl}${url}`;
+}
+
 export function AssignedQuestGuidePage({ questId }: AssignedQuestGuidePageProps) {
   const navigate = useNavigate();
   const [quest, setQuest] = useState<StudentAssignedQuest | null>(null);
-  const [lockedQuest, setLockedQuest] = useState<{ message: string; requiredLevel?: number } | null>(
-    null,
-  );
+  const [lockedQuest, setLockedQuest] = useState<{
+    message: string;
+    requiredLevel?: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [markingRead, setMarkingRead] = useState(false);
 
@@ -173,9 +184,13 @@ export function AssignedQuestGuidePage({ questId }: AssignedQuestGuidePageProps)
               <h1 className="mt-2 font-display text-3xl text-primary glow-text sm:text-4xl">
                 {guide?.title ?? `${quest.title} Guide`}
               </h1>
-              <p className="mt-3 text-stone-foreground/80">
-                {guide?.shortExplanation ?? "Review the quest topic before starting."}
-              </p>
+              {guide?.shortExplanation ? (
+                <p className="mt-3 text-stone-foreground/80">{guide.shortExplanation}</p>
+              ) : !guide?.imageUrl ? (
+                <p className="mt-3 text-stone-foreground/80">
+                  Review the quest topic before starting.
+                </p>
+              ) : null}
               <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-black/20 px-3 py-1.5 text-xs text-stone-foreground/75">
                 {guideViewed ? (
                   <>
@@ -194,30 +209,56 @@ export function AssignedQuestGuidePage({ questId }: AssignedQuestGuidePageProps)
             </div>
           </div>
 
-          <div className="rounded-2xl border border-primary/20 bg-black/20 p-4">
-            <p className="text-xs uppercase tracking-wide text-stone-foreground/60">Example</p>
-            <p className="mt-1 font-display text-2xl text-primary">
-              {guide?.exampleProblem ?? quest.title}
-            </p>
-          </div>
+          {guide?.imageUrl ? (
+            <div className="mb-5 overflow-hidden rounded-2xl border border-primary/20 bg-black/20 p-2">
+              <img
+                src={getQuestImageUrl(guide.imageUrl)}
+                alt="Quest Guide"
+                className="mx-auto max-h-96 w-full object-contain rounded-xl"
+              />
+            </div>
+          ) : null}
 
-          <ol className="mt-5 space-y-3">
-            {(guide?.solutionSteps?.length
-              ? guide.solutionSteps
-              : [
-                  "Read each equation carefully.",
-                  "Use inverse operations.",
-                  "Keep both sides balanced.",
-                ]
-            ).map((step, index) => (
-              <li key={`${step}-${index}`} className="flex gap-3 text-sm text-stone-foreground/85">
-                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-xs text-primary">
-                  {index + 1}
-                </span>
-                {step}
-              </li>
-            ))}
-          </ol>
+          {guide?.exampleProblem ? (
+            <div className="rounded-2xl border border-primary/20 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-wide text-stone-foreground/60">Example</p>
+              <p className="mt-1 font-display text-2xl text-primary">{guide.exampleProblem}</p>
+            </div>
+          ) : null}
+
+          {guide?.solutionSteps && guide.solutionSteps.length > 0 ? (
+            <ol className="mt-5 space-y-3">
+              {guide.solutionSteps.map((step, index) => (
+                <li
+                  key={`${step}-${index}`}
+                  className="flex gap-3 text-sm text-stone-foreground/85"
+                >
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-xs text-primary">
+                    {index + 1}
+                  </span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          ) : !guide?.imageUrl ? (
+            <ol className="mt-5 space-y-3">
+              {[
+                "Read each equation carefully.",
+                "Use inverse operations.",
+                "Keep both sides balanced.",
+              ].map((step, index) => (
+                <li
+                  key={`${step}-${index}`}
+                  className="flex gap-3 text-sm text-stone-foreground/85"
+                >
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-primary/15 font-display text-xs text-primary">
+                    {index + 1}
+                  </span>
+                  {step}
+                </li>
+              ))}
+            </ol>
+          ) : null}
 
           {guide?.tips?.length ? (
             <div className="mt-5 rounded-xl border border-accent/20 bg-accent/10 p-4 text-sm text-stone-foreground/80">

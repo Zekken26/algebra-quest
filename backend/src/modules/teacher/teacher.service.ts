@@ -663,9 +663,17 @@ export async function createQuest(teacherId: string, input: QuestInput) {
   await validateGuideLink(teacherId, input.guideId, sectionId);
   const { questions = [], sectionId: _sectionId, classId: _classId, ...questData } = input;
 
+  const maxQuest = await prisma.quest.findFirst({
+    where: { sectionId },
+    orderBy: { levelNumber: "desc" },
+    select: { levelNumber: true },
+  });
+  const levelNumber = maxQuest ? maxQuest.levelNumber + 1 : 1;
+
   return prisma.quest.create({
     data: {
       ...questData,
+      levelNumber,
       sectionId,
       teacherId,
       questions: {
@@ -766,8 +774,31 @@ export async function deleteQuest(teacherId: string, questId: string) {
   }
 
   await prisma.$transaction(async (tx) => {
+    const quest = await tx.quest.findUnique({
+      where: { id: questId },
+      select: { sectionId: true },
+    });
+
     await tx.questGuide.updateMany({ where: { questId, teacherId }, data: { questId: null } });
     await tx.quest.delete({ where: { id: questId } });
+
+    if (quest) {
+      const remainingQuests = await tx.quest.findMany({
+        where: { sectionId: quest.sectionId },
+        orderBy: { levelNumber: "asc" },
+        select: { id: true, levelNumber: true },
+      });
+
+      for (let i = 0; i < remainingQuests.length; i++) {
+        const nextLevel = i + 1;
+        if (remainingQuests[i].levelNumber !== nextLevel) {
+          await tx.quest.update({
+            where: { id: remainingQuests[i].id },
+            data: { levelNumber: nextLevel },
+          });
+        }
+      }
+    }
   });
 }
 

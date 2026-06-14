@@ -6,6 +6,16 @@ type EquationCardProps = {
   question: AlgebraQuestion;
 };
 
+function getQuestImageUrl(url?: string | null) {
+  if (!url) return "";
+  if (url.startsWith("http")) return url;
+  const baseUrl = (import.meta.env.VITE_API_URL ?? "http://localhost:5000/api").replace(
+    /\/api$/,
+    "",
+  );
+  return `${baseUrl}${url}`;
+}
+
 export function EquationCard({ moduleTitle, question }: EquationCardProps) {
   return (
     <motion.div
@@ -25,9 +35,20 @@ export function EquationCard({ moduleTitle, question }: EquationCardProps) {
         <p className="relative mb-3 text-sm uppercase tracking-[0.28em] text-stone-foreground/60">
           Solve for x
         </p>
-        <p className="relative font-display text-5xl text-primary glow-text sm:text-7xl">
-          {question.prompt}
-        </p>
+        {question.imageUrl ? (
+          <div className="relative mx-auto mb-4 max-w-md overflow-hidden rounded-xl border border-primary/20 bg-black/35 p-2">
+            <img
+              src={getQuestImageUrl(question.imageUrl)}
+              alt="Question Challenge Reference"
+              className="mx-auto max-h-72 w-full object-contain rounded-lg"
+            />
+          </div>
+        ) : null}
+        {question.prompt ? (
+          <p className="relative font-display text-5xl text-primary glow-text sm:text-7xl">
+            {question.prompt}
+          </p>
+        ) : null}
       </div>
     </motion.div>
   );

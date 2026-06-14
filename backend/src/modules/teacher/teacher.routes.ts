@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth, requireRole } from "../../middleware/auth.middleware";
+import { uploadQuestImage } from "../../middleware/upload.middleware";
 import * as teacherController from "./teacher.controller";
 import { teacherProfileRouter } from "./teacherProfile.routes";
 
@@ -8,6 +9,7 @@ export const teacherRouter = Router();
 teacherRouter.use(requireAuth, requireRole("TEACHER"));
 
 teacherRouter.use("/profile", teacherProfileRouter);
+teacherRouter.post("/upload", uploadQuestImage, teacherController.uploadQuestAsset);
 teacherRouter.get("/dashboard", teacherController.getDashboard);
 teacherRouter.get("/analytics", teacherController.getAnalytics);
 

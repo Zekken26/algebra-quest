@@ -86,14 +86,18 @@ export function QuestInfoStep({ values, sections, errors, onChange }: QuestInfoS
         </label>
 
         <label className="grid gap-2">
-          <span className="text-sm font-semibold text-stone-foreground/80">Level number</span>
+          <span className="text-sm font-semibold text-stone-foreground/80 font-display">
+            Level number
+          </span>
           <input
-            className="teacher-input"
-            min={1}
+            className="teacher-input bg-stone-900/50 text-stone-foreground/50 border-primary/10 cursor-not-allowed"
             type="number"
             value={values.levelNumber}
-            onChange={(event) => onChange("levelNumber", Number(event.target.value))}
+            disabled
           />
+          <span className="text-[10px] text-stone-foreground/45">
+            Automatically assigned based on section quest sequence.
+          </span>
           {errors.levelNumber ? (
             <span className="text-xs text-destructive">{errors.levelNumber}</span>
           ) : null}

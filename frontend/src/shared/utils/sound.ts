@@ -148,6 +148,8 @@ export function isSoundControl(target: EventTarget | null) {
   const control = target.closest("button, a, [role='button'], input, select, textarea");
 
   return Boolean(
-    control && !control.hasAttribute("disabled") && control.getAttribute("aria-disabled") !== "true",
+    control &&
+    !control.hasAttribute("disabled") &&
+    control.getAttribute("aria-disabled") !== "true",
   );
 }

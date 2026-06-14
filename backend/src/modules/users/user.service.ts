@@ -31,6 +31,7 @@ export async function getStudentDashboard(studentId: string) {
           select: {
             status: true,
             joinedAt: true,
+            grade: true,
             section: { select: { id: true, name: true, description: true, code: true, teacher: { select: { id: true, name: true } } } },
           },
           orderBy: { section: { name: "asc" } },
@@ -55,6 +56,7 @@ export async function getStudentDashboard(studentId: string) {
         ...enrollment.section,
         joinedAt: enrollment.joinedAt,
         status: enrollment.status,
+        grade: enrollment.grade ?? null,
       })),
     },
     stats: {
@@ -113,6 +115,7 @@ export async function getStudentSections(studentId: string) {
     select: {
       joinedAt: true,
       status: true,
+      grade: true,
       section: {
         select: {
           id: true,
@@ -131,6 +134,7 @@ export async function getStudentSections(studentId: string) {
     ...enrollment.section,
     joinedAt: enrollment.joinedAt,
     status: enrollment.status,
+    grade: enrollment.grade ?? null,
   }));
 }
 
@@ -186,7 +190,7 @@ export async function getStudentSection(studentId: string, sectionId: string) {
       teacher: { select: { id: true, name: true } },
       studentSections: {
         where: { studentId, status: "ACTIVE" },
-        select: { joinedAt: true, status: true },
+        select: { joinedAt: true, status: true, grade: true },
       },
       _count: { select: { questGuides: true, quests: true } },
     },
@@ -199,7 +203,7 @@ export async function getStudentSection(studentId: string, sectionId: string) {
   const [enrollment] = section.studentSections;
   const { studentSections: _studentSections, ...data } = section;
 
-  return { ...data, joinedAt: enrollment?.joinedAt, status: enrollment?.status };
+  return { ...data, joinedAt: enrollment?.joinedAt, status: enrollment?.status, grade: enrollment?.grade ?? null };
 }
 
 export async function getStudentSectionQuestGuides(studentId: string, sectionId: string) {

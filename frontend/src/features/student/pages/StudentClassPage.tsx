@@ -181,13 +181,14 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                 {quests.length > 0 ? (
                   quests.map((quest) => {
                     const questProgress = quest.progress?.[0];
-                    const completed = quest.status === "completed" || Boolean(questProgress?.questCompleted);
+                    const completed =
+                      quest.status === "completed" || Boolean(questProgress?.questCompleted);
                     const locked = quest.status === "locked" || Boolean(quest.locked);
                     const guideViewed = !quest.guideId || Boolean(questProgress?.guideViewed);
                     const started = Boolean(
                       questProgress?.questUnlocked &&
-                        !questProgress.questCompleted &&
-                        questProgress.heartsRemaining > 0,
+                      !questProgress.questCompleted &&
+                      questProgress.heartsRemaining > 0,
                     );
                     return (
                       <article
@@ -212,7 +213,13 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                                   : "border-primary/20 bg-primary/10 text-primary"
                             }`}
                           >
-                            {completed ? "Completed" : locked ? "Locked" : started ? "Available" : "Available"}
+                            {completed
+                              ? "Completed"
+                              : locked
+                                ? "Locked"
+                                : started
+                                  ? "Available"
+                                  : "Available"}
                           </span>
                         </div>
                         <p className="mt-2 text-sm text-stone-foreground/75">
@@ -224,22 +231,37 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                           </p>
                           <p>
                             Status:{" "}
-                            {completed ? "Completed" : locked ? "Locked" : started ? "Started" : "Not started"}
+                            {completed
+                              ? "Completed"
+                              : locked
+                                ? "Locked"
+                                : started
+                                  ? "Started"
+                                  : "Not started"}
                           </p>
                           {locked ? (
                             <p className="flex items-center gap-2 text-stone-foreground/70">
                               <Lock className="h-4 w-4" />
-                              {quest.lockReason ?? `Complete Level ${quest.requiredLevel ?? quest.levelNumber - 1} first.`}
+                              {quest.lockReason ??
+                                `Complete Level ${quest.requiredLevel ?? quest.levelNumber - 1} first.`}
                             </p>
                           ) : null}
                         </div>
                         <div className="mt-4 grid gap-2 sm:grid-cols-2">
                           {locked ? (
                             <>
-                              <button type="button" className="btn-game btn-stone text-sm opacity-60" disabled>
+                              <button
+                                type="button"
+                                className="btn-game btn-stone text-sm opacity-60"
+                                disabled
+                              >
                                 <BookOpenText className="h-4 w-4" /> Guide
                               </button>
-                              <button type="button" className="btn-game text-sm opacity-60" disabled>
+                              <button
+                                type="button"
+                                className="btn-game text-sm opacity-60"
+                                disabled
+                              >
                                 <Lock className="h-4 w-4" /> Start Quest
                               </button>
                             </>

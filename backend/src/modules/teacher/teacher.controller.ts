@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { asyncHandler } from "../../utils/asyncHandler";
 import { AppError } from "../../utils/AppError";
+import { toQuestImageUrl } from "../../middleware/upload.middleware";
 import * as teacherService from "./teacher.service";
 import {
   addQuestionsSchema,
@@ -362,4 +363,14 @@ export const getTopStudent = asyncHandler(async (req, res) => {
   const topStudent = await teacherService.getTopStudent(req.user!.sub, sectionId);
 
   res.status(200).json({ success: true, data: { topStudent } });
+});
+
+export const uploadQuestAsset = asyncHandler(async (req, res) => {
+  if (!req.file) {
+    throw new AppError("No file uploaded.", 400, "NO_FILE_UPLOADED");
+  }
+
+  const imageUrl = await toQuestImageUrl(req.file);
+
+  res.status(200).json({ success: true, data: { imageUrl } });
 });

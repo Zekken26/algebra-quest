@@ -28,7 +28,9 @@ export function PerformanceChart({ data, title = "Performance Overview" }: Perfo
                 className="flex-1 rounded-t-md bg-accent/80"
               />
             </div>
-            <span className="text-[0.65rem] text-stone-foreground/65 sm:text-xs">{point.label}</span>
+            <span className="text-[0.65rem] text-stone-foreground/65 sm:text-xs">
+              {point.label}
+            </span>
           </div>
         ))}
       </div>

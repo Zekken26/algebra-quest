@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight, Save, Send } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   createTeacherGuide,
@@ -19,6 +19,7 @@ export type QuestQuestionDraft = {
   correctAnswer: string;
   explanation: string;
   solutionSteps: string[];
+  imageUrl?: string;
 };
 
 export type QuestWizardValues = {
@@ -38,6 +39,7 @@ export type QuestWizardValues = {
   xpReward: number;
   coinReward: number;
   questions: QuestQuestionDraft[];
+  guideImageUrl?: string;
 };
 
 type CreateQuestWizardProps = {
@@ -57,6 +59,7 @@ function newQuestion(): QuestQuestionDraft {
     correctAnswer: "",
     explanation: "",
     solutionSteps: [""],
+    imageUrl: "",
   };
 }
 
@@ -85,6 +88,7 @@ function defaultValues(sectionId = ""): QuestWizardValues {
     xpReward: 100,
     coinReward: 50,
     questions: [newQuestion()],
+    guideImageUrl: "",
   };
 }
 
@@ -98,6 +102,16 @@ export function CreateQuestWizard({
   const [values, setValues] = useState<QuestWizardValues>(() => defaultValues(initialSectionId));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (values.sectionId && sections.length > 0) {
+      const selectedSection = sections.find((s) => s.id === values.sectionId);
+      const questCount = selectedSection?._count?.quests ?? 0;
+      setValues((current) => ({ ...current, levelNumber: questCount + 1 }));
+    } else {
+      setValues((current) => ({ ...current, levelNumber: 1 }));
+    }
+  }, [values.sectionId, sections]);
 
   const progress = useMemo(() => Math.round(((activeStep + 1) / steps.length) * 100), [activeStep]);
 
@@ -248,11 +262,13 @@ export function CreateQuestWizard({
     }
 
     if (step === 1) {
-      if (values.shortExplanation.trim().length < 5)
-        nextErrors.shortExplanation = "Add a short guide explanation.";
-      if (!values.exampleProblem.trim()) nextErrors.exampleProblem = "Add an example problem.";
-      if (splitLines(values.solutionStepsText).length === 0)
-        nextErrors.solutionStepsText = "Add at least one solution step.";
+      if (!values.guideImageUrl) {
+        if (values.shortExplanation.trim().length < 5)
+          nextErrors.shortExplanation = "Add a short guide explanation.";
+        if (!values.exampleProblem.trim()) nextErrors.exampleProblem = "Add an example problem.";
+        if (splitLines(values.solutionStepsText).length === 0)
+          nextErrors.solutionStepsText = "Add at least one solution step.";
+      }
     }
 
     if (step === 2) {
@@ -266,19 +282,21 @@ export function CreateQuestWizard({
     if (step === 3) {
       const invalidQuestion = values.questions.find((question) => {
         const choices = question.choices.map((choice) => choice.trim());
+        const hasImage = !!question.imageUrl;
         return (
-          !question.equation.trim() ||
+          (!hasImage && !question.equation.trim()) ||
           choices.length !== 4 ||
           choices.some((choice) => !choice) ||
           !question.correctAnswer.trim() ||
           !choices.includes(question.correctAnswer.trim()) ||
-          !question.explanation.trim() ||
-          question.solutionSteps.map((step) => step.trim()).filter(Boolean).length === 0
+          (!hasImage && !question.explanation.trim()) ||
+          (!hasImage &&
+            question.solutionSteps.map((step) => step.trim()).filter(Boolean).length === 0)
         );
       });
       if (values.questions.length === 0 || invalidQuestion) {
         nextErrors.questions =
-          "Complete every question with four choices, a matching correct answer, explanation, and solution steps.";
+          "Complete every question with four choices, a matching correct answer, and (if no image is uploaded) an equation, explanation, and solution steps.";
       }
     }
 
@@ -320,6 +338,7 @@ export function CreateQuestWizard({
         solutionSteps: splitLines(values.solutionStepsText),
         tips: splitLines(values.tipsText),
         sectionId: values.sectionId,
+        imageUrl: values.guideImageUrl || null,
       });
 
       await createTeacherQuest({
@@ -342,6 +361,7 @@ export function CreateQuestWizard({
           correctAnswer: question.correctAnswer.trim(),
           explanation: question.explanation.trim(),
           solutionSteps: question.solutionSteps.map((step) => step.trim()).filter(Boolean),
+          imageUrl: question.imageUrl || null,
         })),
       });
 

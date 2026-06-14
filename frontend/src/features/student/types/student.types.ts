@@ -9,6 +9,7 @@ export type AlgebraQuestion = {
   answer: string;
   explanation: string;
   hint: string;
+  imageUrl?: string | null;
 };
 
 export type StudentLesson = {
@@ -20,6 +21,7 @@ export type StudentLesson = {
   steps: string[];
   tip: string;
   examples: string[];
+  imageUrl?: string | null;
 };
 
 export type StudentModule = {

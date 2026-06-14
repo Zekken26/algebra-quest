@@ -235,7 +235,12 @@ export function AlgebraQuestGamePage({ moduleId }: AlgebraQuestGamePageProps) {
 
       if (questWillComplete) {
         window.setTimeout(() => playSound("complete"), 360);
-        persistLiveStats({ xpDelta: questXpReward, coins: nextCoins, relicPieces: nextPieces, answeredQuestionId: question.id });
+        persistLiveStats({
+          xpDelta: questXpReward,
+          coins: nextCoins,
+          relicPieces: nextPieces,
+          answeredQuestionId: question.id,
+        });
         saveCompletion(nextCoins, nextXp);
         window.setTimeout(() => setLevelComplete(true), 650);
       } else {

@@ -62,10 +62,11 @@ export const guideQuerySchema = z.object({
 export const guideSchema = z.object({
   title: z.string().trim().min(2).max(160),
   topic: z.string().trim().min(2).max(160),
-  shortExplanation: z.string().trim().min(5).max(5000),
-  exampleProblem: z.string().trim().min(1).max(1000),
-  solutionSteps: z.array(z.string().trim().min(1).max(1000)).min(1).max(30),
+  shortExplanation: z.string().trim().max(5000).default(""),
+  exampleProblem: z.string().trim().max(1000).default(""),
+  solutionSteps: z.array(z.string().trim().min(1).max(1000)).max(30).default([]),
   tips: z.array(z.string().trim().min(1).max(500)).max(20).default([]),
+  imageUrl: z.string().trim().optional().nullable(),
   classId: optionalId,
   sectionId: optionalId,
   questId: optionalId,
@@ -76,12 +77,13 @@ export const updateGuideSchema = guideSchema.partial().refine((value) => Object.
 });
 
 const baseQuestionSchema = z.object({
-  equation: z.string().trim().min(1).max(1000),
+  equation: z.string().trim().max(1000).default(""),
   choices: z.array(z.string().trim().min(1).max(500)).length(4),
   correctAnswer: z.string().trim().min(1).max(500),
-  explanation: z.string().trim().min(1).max(2000).default("Review the solution steps for the reasoning."),
-  solutionSteps: z.array(z.string().trim().min(1).max(1000)).min(1).max(30),
+  explanation: z.string().trim().max(2000).default(""),
+  solutionSteps: z.array(z.string().trim().min(1).max(1000)).max(30).default([]),
   difficulty: z.string().trim().min(1).max(80).optional(),
+  imageUrl: z.string().trim().optional().nullable(),
 });
 
 export const questionSchema = baseQuestionSchema.superRefine((value, ctx) => {

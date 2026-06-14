@@ -62,7 +62,11 @@ export function TeacherHeader({ title, subtitle, actionLabel, onAction }: Teache
           </button>
         </div>
         {onAction && actionLabel ? (
-          <button onClick={onAction} className="btn-game w-full px-4 py-3 text-sm sm:w-auto" type="button">
+          <button
+            onClick={onAction}
+            className="btn-game w-full px-4 py-3 text-sm sm:w-auto"
+            type="button"
+          >
             <Plus className="h-4 w-4" /> {actionLabel}
           </button>
         ) : null}

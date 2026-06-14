@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { LogOut, Pencil, ScrollText } from "lucide-react";
+import { GraduationCap, LogOut, Pencil, ScrollText } from "lucide-react";
 import { clearAuth } from "@/shared/services/api";
 
 type StudentProfileDropdownProps = {
@@ -40,6 +40,13 @@ export function StudentProfileDropdown({ open, onClose }: StudentProfileDropdown
             className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-stone-foreground/85 transition hover:bg-primary/10 hover:text-primary sm:gap-3 sm:rounded-xl sm:px-3 sm:py-2.5"
           >
             <ScrollText className="h-4 w-4" /> View Progress
+          </Link>
+          <Link
+            to="/student/grades"
+            onClick={onClose}
+            className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-stone-foreground/85 transition hover:bg-primary/10 hover:text-primary sm:gap-3 sm:rounded-xl sm:px-3 sm:py-2.5"
+          >
+            <GraduationCap className="h-4.5 w-4.5" /> View Grades
           </Link>
           <button
             type="button"

@@ -8,7 +8,13 @@ type AnswerChoicesProps = {
   onChoose: (choice: string) => void;
 };
 
-export function AnswerChoices({ choices, picked, status, disabled = false, onChoose }: AnswerChoicesProps) {
+export function AnswerChoices({
+  choices,
+  picked,
+  status,
+  disabled = false,
+  onChoose,
+}: AnswerChoicesProps) {
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {choices.map((choice) => {

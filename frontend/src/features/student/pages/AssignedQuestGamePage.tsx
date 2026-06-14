@@ -36,9 +36,10 @@ type AssignedQuestGamePageProps = {
 export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
   const navigate = useNavigate();
   const [quest, setQuest] = useState<StudentAssignedQuest | null>(null);
-  const [lockedQuest, setLockedQuest] = useState<{ message: string; requiredLevel?: number } | null>(
-    null,
-  );
+  const [lockedQuest, setLockedQuest] = useState<{
+    message: string;
+    requiredLevel?: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
   const [started, setStarted] = useState(false);
@@ -221,7 +222,10 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
     if (wasCorrect && pendingAnsweredId) {
       setQuest((prev) =>
         prev
-          ? { ...prev, answeredQuestionIds: [...(prev.answeredQuestionIds ?? []), pendingAnsweredId] }
+          ? {
+              ...prev,
+              answeredQuestionIds: [...(prev.answeredQuestionIds ?? []), pendingAnsweredId],
+            }
           : null,
       );
       setPendingAnsweredId(null);
@@ -384,6 +388,7 @@ export function AssignedQuestGamePage({ questId }: AssignedQuestGamePageProps) {
                 answer: "",
                 explanation: "",
                 hint: "",
+                imageUrl: question.imageUrl,
               }}
             />
             <AnswerChoices

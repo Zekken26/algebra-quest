@@ -64,6 +64,7 @@ export type TeacherGuide = {
   exampleProblem: string;
   solutionSteps: string[];
   tips: string[];
+  imageUrl?: string | null;
   sectionId: string;
   questId?: string | null;
 };
@@ -95,6 +96,7 @@ export type TeacherQuestion = {
   explanation: string;
   solutionSteps: string[];
   difficulty: string;
+  imageUrl?: string | null;
 };
 
 function authHeaders(json = true) {
@@ -276,6 +278,17 @@ export async function uploadTeacherAvatar(file: File) {
   return { ...data.profile, avatarUrl: avatarUrl(data.profile.avatarUrl) };
 }
 
+export async function uploadTeacherQuestAsset(file: File) {
+  const formData = new FormData();
+  formData.append("image", file);
+  const data = await apiRequest<{ imageUrl: string }>("/teacher/upload", {
+    method: "POST",
+    body: formData,
+    headers: authHeaders(false),
+  });
+  return data.imageUrl;
+}
+
 export async function fetchTeacherDashboardStats(): Promise<DashboardStats> {
   const data = await apiRequest<{
     dashboard: {
@@ -435,14 +448,17 @@ export async function removeStudentFromSection(sectionId: string, studentId: str
   );
 }
 
-export async function updateStudentGrade(sectionId: string, studentId: string, grade: number | null) {
-  return apiRequest<{ enrollment: { id: string; studentId: string; sectionId: string; grade: number | null } }>(
-    `/teacher/classes/${sectionId}/students/${studentId}/grade`,
-    {
-      method: "PUT",
-      body: JSON.stringify({ grade }),
-    },
-  );
+export async function updateStudentGrade(
+  sectionId: string,
+  studentId: string,
+  grade: number | null,
+) {
+  return apiRequest<{
+    enrollment: { id: string; studentId: string; sectionId: string; grade: number | null };
+  }>(`/teacher/classes/${sectionId}/students/${studentId}/grade`, {
+    method: "PUT",
+    body: JSON.stringify({ grade }),
+  });
 }
 
 export async function fetchStudentProgress(studentId: string) {

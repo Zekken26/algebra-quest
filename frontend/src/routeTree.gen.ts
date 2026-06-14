@@ -24,6 +24,7 @@ import { Route as TeacherClassesRouteImport } from './routes/teacher.classes'
 import { Route as TeacherAnalyticsRouteImport } from './routes/teacher.analytics'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentJoinClassRouteImport } from './routes/student.join-class'
+import { Route as StudentGradesRouteImport } from './routes/student.grades'
 import { Route as TeacherQuestsCreateRouteImport } from './routes/teacher.quests.create'
 import { Route as TeacherClassesClassIdRouteImport } from './routes/teacher.classes_.$classId'
 import { Route as StudentProfileEditRouteImport } from './routes/student.profile.edit'
@@ -109,6 +110,11 @@ const StudentJoinClassRoute = StudentJoinClassRouteImport.update({
   path: '/join-class',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentGradesRoute = StudentGradesRouteImport.update({
+  id: '/grades',
+  path: '/grades',
+  getParentRoute: () => StudentRoute,
+} as any)
 const TeacherQuestsCreateRoute = TeacherQuestsCreateRouteImport.update({
   id: '/quests/create',
   path: '/quests/create',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/student': typeof StudentRouteWithChildren
   '/teacher': typeof TeacherRouteWithChildren
+  '/student/grades': typeof StudentGradesRoute
   '/student/join-class': typeof StudentJoinClassRoute
   '/student/progress': typeof StudentProgressRoute
   '/teacher/analytics': typeof TeacherAnalyticsRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/login': typeof LoginRoute
+  '/student/grades': typeof StudentGradesRoute
   '/student/join-class': typeof StudentJoinClassRoute
   '/student/progress': typeof StudentProgressRoute
   '/teacher/analytics': typeof TeacherAnalyticsRoute
@@ -216,6 +224,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/student': typeof StudentRouteWithChildren
   '/teacher': typeof TeacherRouteWithChildren
+  '/student/grades': typeof StudentGradesRoute
   '/student/join-class': typeof StudentJoinClassRoute
   '/student/progress': typeof StudentProgressRoute
   '/teacher/analytics': typeof TeacherAnalyticsRoute
@@ -244,6 +253,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/student'
     | '/teacher'
+    | '/student/grades'
     | '/student/join-class'
     | '/student/progress'
     | '/teacher/analytics'
@@ -268,6 +278,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/login'
+    | '/student/grades'
     | '/student/join-class'
     | '/student/progress'
     | '/teacher/analytics'
@@ -294,6 +305,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/student'
     | '/teacher'
+    | '/student/grades'
     | '/student/join-class'
     | '/student/progress'
     | '/teacher/analytics'
@@ -430,6 +442,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentJoinClassRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/student/grades': {
+      id: '/student/grades'
+      path: '/grades'
+      fullPath: '/student/grades'
+      preLoaderRoute: typeof StudentGradesRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/teacher/quests/create': {
       id: '/teacher/quests/create'
       path: '/quests/create'
@@ -497,6 +516,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface StudentRouteChildren {
+  StudentGradesRoute: typeof StudentGradesRoute
   StudentJoinClassRoute: typeof StudentJoinClassRoute
   StudentProgressRoute: typeof StudentProgressRoute
   StudentIndexRoute: typeof StudentIndexRoute
@@ -510,6 +530,7 @@ interface StudentRouteChildren {
 }
 
 const StudentRouteChildren: StudentRouteChildren = {
+  StudentGradesRoute: StudentGradesRoute,
   StudentJoinClassRoute: StudentJoinClassRoute,
   StudentProgressRoute: StudentProgressRoute,
   StudentIndexRoute: StudentIndexRoute,

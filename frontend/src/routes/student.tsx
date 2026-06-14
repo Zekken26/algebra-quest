@@ -24,7 +24,8 @@ function StudentLayout() {
       isLegacyModulePath ||
       path.startsWith("/student/classes") ||
       path.startsWith("/student/quests") ||
-      path.startsWith("/student/progress");
+      path.startsWith("/student/progress") ||
+      path.startsWith("/student/grades");
 
     const checkAccess = async () => {
       const auth = getAuth();

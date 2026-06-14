@@ -35,11 +35,15 @@ export function TopStudentCard({ student }: TopStudentCardProps) {
           <p className="text-xs text-stone-foreground/60">XP</p>
         </div>
         <div className="rounded-xl bg-black/20 p-3">
-          <p className="truncate font-display text-lg text-primary sm:text-xl">{student.gameScore}</p>
+          <p className="truncate font-display text-lg text-primary sm:text-xl">
+            {student.gameScore}
+          </p>
           <p className="text-xs text-stone-foreground/60">Game</p>
         </div>
         <div className="rounded-xl bg-black/20 p-3">
-          <p className="truncate font-display text-lg text-primary sm:text-xl">{student.quizAverage}</p>
+          <p className="truncate font-display text-lg text-primary sm:text-xl">
+            {student.quizAverage}
+          </p>
           <p className="text-xs text-stone-foreground/60">Quiz</p>
         </div>
       </div>

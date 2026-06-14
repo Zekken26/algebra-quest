@@ -45,6 +45,7 @@ export type StudentClass = {
   code: string;
   joinedAt?: string;
   status?: string;
+  grade?: number | null;
   teacher?: { id?: string; name: string };
   _count?: { questGuides?: number; quests?: number };
 };
@@ -82,8 +83,15 @@ export type StudentAssignedQuest = {
     exampleProblem?: string;
     solutionSteps?: string[];
     tips?: string[];
+    imageUrl?: string | null;
   } | null;
-  questions?: Array<{ id: string; equation: string; choices: string[]; difficulty: string }>;
+  questions?: Array<{
+    id: string;
+    equation: string;
+    choices: string[];
+    difficulty: string;
+    imageUrl?: string | null;
+  }>;
   answeredQuestionIds?: string[];
   progress?: Array<{
     id: string;
@@ -116,6 +124,7 @@ export type StudentQuestGuide = {
   questId?: string | null;
   featuredQuest?: { id: string; title: string; levelNumber: number } | null;
   quests?: Array<{ id: string; title: string; levelNumber: number }>;
+  imageUrl?: string | null;
 };
 
 export type StudentClassProgress = {

@@ -88,7 +88,9 @@ export function AssignedQuestSection({
               key={quest.id}
               className={`quest-panel overflow-hidden ${locked ? "opacity-70 grayscale-[0.35]" : ""}`}
             >
-              <div className={`h-2 ${completed ? "bg-emerald-500" : locked ? "bg-stone-700" : "bg-[var(--gradient-gold)]"}`} />
+              <div
+                className={`h-2 ${completed ? "bg-emerald-500" : locked ? "bg-stone-700" : "bg-[var(--gradient-gold)]"}`}
+              />
               <div className="p-5">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div>
@@ -125,14 +127,24 @@ export function AssignedQuestSection({
                   <p>Questions: {quest._count?.questions ?? quest.questions?.length ?? 0}</p>
                   <p>
                     Status:{" "}
-                    {completed ? "Completed" : locked ? "Locked" : started ? "In progress" : "Available"}
+                    {completed
+                      ? "Completed"
+                      : locked
+                        ? "Locked"
+                        : started
+                          ? "In progress"
+                          : "Available"}
                   </p>
                 </div>
 
                 <div className="mt-5 grid gap-3 sm:grid-cols-2">
                   {locked ? (
                     <>
-                      <button type="button" className="btn-game btn-stone text-sm opacity-60" disabled>
+                      <button
+                        type="button"
+                        className="btn-game btn-stone text-sm opacity-60"
+                        disabled
+                      >
                         <BookOpenText className="h-4 w-4" /> View Quest
                       </button>
                       <button type="button" className="btn-game text-sm opacity-60" disabled>
@@ -167,7 +179,8 @@ export function AssignedQuestSection({
 
                 {locked ? (
                   <p className="mt-3 text-xs text-stone-foreground/70">
-                    {quest.lockReason ?? `Complete Level ${quest.requiredLevel ?? quest.levelNumber - 1} first.`}
+                    {quest.lockReason ??
+                      `Complete Level ${quest.requiredLevel ?? quest.levelNumber - 1} first.`}
                   </p>
                 ) : !guideViewed ? (
                   <p className="mt-3 text-xs text-stone-foreground/60">
