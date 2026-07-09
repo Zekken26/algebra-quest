@@ -4,6 +4,7 @@ import {
   ArrowLeft,
   BookOpenText,
   Copy,
+  Download,
   Pencil,
   Plus,
   Save,
@@ -246,6 +247,44 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
     }
   };
 
+  const exportStudentsCsv = () => {
+    if (students.length === 0) {
+      toast.error("No students to export.");
+      return;
+    }
+    const headers = [
+      "Name","Email","XP","Coins","Grade",
+      "Accuracy (%)","Completion (%)","Time Spent (min)",
+      "Attempts","Correct","Status","Current Quest","Last Active",
+    ];
+    const rows = students.map((s) =>
+      [
+        `"${s.name.replace(/"/g, '""')}"`,
+        s.email ?? "",
+        s.xp,
+        s.coins,
+        s.grade ?? "",
+        s.accuracy,
+        s.completion,
+        s.timeSpentMinutes,
+        s.totalAttempts ?? 0,
+        s.correctAttempts ?? 0,
+        s.status,
+        `"${(s.currentQuest ?? "").replace(/"/g, '""')}"`,
+        s.lastLoginAt ?? "",
+      ].join(","),
+    );
+    const csv = [headers.join(","), ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;", endings: "native" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `students-${details?.classInfo.name ?? "class"}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Student data exported.");
+  };
+
   const saveGrade = async (student: TeacherStudent) => {
     const rawGrade = gradeDrafts[student.id]?.trim() ?? "";
     const grade = rawGrade === "" ? null : Number(rawGrade);
@@ -347,9 +386,21 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
       <TeacherHeader
         title={details?.classInfo.name ?? "Class Details"}
         subtitle="Manage students, assigned quests, class analytics, and leaderboard standings."
-        actionLabel="Refresh"
-        onAction={() => void load()}
-      />
+      >
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn-game btn-stone px-4 py-3 text-sm" onClick={() => void load()}>
+            <Download className="h-4 w-4" /> Refresh
+          </button>
+          <button
+            type="button"
+            className="btn-game px-4 py-3 text-sm"
+            onClick={exportStudentsCsv}
+            disabled={students.length === 0}
+          >
+            <Download className="h-4 w-4" /> Export CSV
+          </button>
+        </div>
+      </TeacherHeader>
 
       <section className="teacher-card mb-6 p-5">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">

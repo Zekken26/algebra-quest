@@ -1,4 +1,5 @@
 import { Bell, Plus, Search } from "lucide-react";
+import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { getAuth, resolveAvatarUrl } from "@/lib/store";
@@ -8,9 +9,10 @@ type TeacherHeaderProps = {
   subtitle: string;
   actionLabel?: string;
   onAction?: () => void;
+  children?: ReactNode;
 };
 
-export function TeacherHeader({ title, subtitle, actionLabel, onAction }: TeacherHeaderProps) {
+export function TeacherHeader({ title, subtitle, actionLabel, onAction, children }: TeacherHeaderProps) {
   const [user, setUser] = useState<ReturnType<typeof getAuth>>(null);
   const teacherName = user?.name ?? "Teacher Sage";
   const teacherAvatarUrl = resolveAvatarUrl(user?.avatarUrl);
@@ -61,7 +63,9 @@ export function TeacherHeader({ title, subtitle, actionLabel, onAction }: Teache
             <Bell className="h-5 w-5" />
           </button>
         </div>
-        {onAction && actionLabel ? (
+        {children ? (
+          children
+        ) : onAction && actionLabel ? (
           <button
             onClick={onAction}
             className="btn-game w-full px-4 py-3 text-sm sm:w-auto"
