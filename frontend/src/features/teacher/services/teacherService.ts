@@ -397,6 +397,13 @@ export async function fetchTeacherClassDetails(classId: string) {
   return apiRequest<TeacherClassDetails>(`/teacher/classes/${classId}`);
 }
 
+export async function fetchStudentActivity(studentId: string) {
+  const data = await apiRequest<{ activity: Record<string, unknown> }>(
+    `/teacher/students/${studentId}/activity`,
+  );
+  return data.activity as any;
+}
+
 export async function fetchTeacherSection(sectionId: string) {
   const data = await apiRequest<{ section: TeacherSection }>(`/teacher/sections/${sectionId}`);
   return data.section;

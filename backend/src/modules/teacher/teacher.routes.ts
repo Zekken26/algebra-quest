@@ -15,6 +15,7 @@ teacherRouter.get("/analytics", teacherController.getAnalytics);
 
 teacherRouter.get("/students/search", teacherController.searchStudents);
 teacherRouter.get("/students/:studentId/progress", teacherController.getStudentProgress);
+teacherRouter.get("/students/:studentId/activity", teacherController.getStudentActivity);
 
 teacherRouter.get("/classes", teacherController.getSections);
 teacherRouter.post("/classes", teacherController.createSection);

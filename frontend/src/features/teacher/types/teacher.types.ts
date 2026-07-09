@@ -36,6 +36,9 @@ export type TeacherStudent = {
   weakAreas: string[];
   currentQuest?: string;
   status: "thriving" | "steady" | "at-risk";
+  lastLoginAt?: string | null;
+  totalAttempts?: number;
+  correctAttempts?: number;
 };
 
 export type TeacherModule = {

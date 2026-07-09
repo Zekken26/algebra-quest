@@ -365,6 +365,13 @@ export const getTopStudent = asyncHandler(async (req, res) => {
   res.status(200).json({ success: true, data: { topStudent } });
 });
 
+export const getStudentActivity = asyncHandler(async (req, res) => {
+  const { studentId } = studentIdParamsSchema.parse(req.params);
+  const activity = await teacherService.getStudentActivity(req.user!.sub, studentId);
+
+  res.status(200).json({ success: true, data: { activity } });
+});
+
 export const uploadQuestAsset = asyncHandler(async (req, res) => {
   if (!req.file) {
     throw new AppError("No file uploaded.", 400, "NO_FILE_UPLOADED");

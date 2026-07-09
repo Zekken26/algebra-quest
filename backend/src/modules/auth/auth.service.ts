@@ -72,8 +72,13 @@ export async function login(input: LoginInput) {
     throw new AppError("Invalid email or password.", 401, "INVALID_CREDENTIALS");
   }
 
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { lastLoginAt: new Date() },
+  });
+
   const { password: _password, ...safeUser } = user;
-  return { user: safeUser, accessToken: signToken(user) };
+  return { user: { ...safeUser, lastLoginAt: new Date() }, accessToken: signToken(user) };
 }
 
 export async function me(userId: string) {

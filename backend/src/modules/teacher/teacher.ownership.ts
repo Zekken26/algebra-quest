@@ -84,6 +84,7 @@ export async function assertTeacherCanViewStudent(teacherId: string, studentId: 
       avatarUrl: true,
       xp: true,
       coins: true,
+      lastLoginAt: true,
       studentSections: {
         where: { status: "ACTIVE", section: { teacherId } },
         select: { section: { select: { id: true, name: true } } },

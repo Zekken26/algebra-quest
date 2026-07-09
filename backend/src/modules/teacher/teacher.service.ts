@@ -55,6 +55,7 @@ const studentSelect = {
   avatarUrl: true,
   xp: true,
   coins: true,
+  lastLoginAt: true,
 };
 
 function round2(value: number) {
@@ -1074,11 +1075,25 @@ export async function getClassDetails(teacherId: string, classId: string) {
   }
 
   const leaderboard = buildLeaderboardRows(students, section.quests, progress).slice(0, 5);
+  const studentIds = students.map((student) => student.id);
+  const allAttempts = await prisma.answerAttempt.findMany({
+    where: { studentId: { in: studentIds }, sectionId: classId },
+    select: { studentId: true, isCorrect: true },
+  });
+  const attemptMap = new Map<string, { total: number; correct: number }>();
+  for (const att of allAttempts) {
+    const entry = attemptMap.get(att.studentId) ?? { total: 0, correct: 0 };
+    entry.total += 1;
+    if (att.isCorrect) entry.correct += 1;
+    attemptMap.set(att.studentId, entry);
+  }
+
   const studentRows = section.studentSections.map((enrollment) => {
     const studentProgress = progressByStudent.get(enrollment.student.id) ?? [];
     const summary = summarizeProgress(studentProgress, section.quests.length);
     const completedQuestIds = new Set(studentProgress.filter((record) => record.questCompleted).map((record) => record.questId));
     const currentQuest = section.quests.find((quest) => !completedQuestIds.has(quest.id)) ?? null;
+    const attempts = attemptMap.get(enrollment.student.id);
 
     return {
       ...enrollment.student,
@@ -1087,6 +1102,8 @@ export async function getClassDetails(teacherId: string, classId: string) {
       progressSummary: summary,
       currentQuest: currentQuest ? { id: currentQuest.id, title: currentQuest.title, topic: currentQuest.topic } : null,
       status: summary.accuracy >= 90 ? "thriving" : summary.accuracy < 70 ? "at-risk" : "steady",
+      totalAttempts: attempts?.total ?? 0,
+      correctAttempts: attempts?.correct ?? 0,
     };
   });
 
@@ -1266,5 +1283,62 @@ export async function getAnalytics(teacherId: string, input: { sectionId?: strin
       completion: totalQuestSlots === 0 ? 0 : round2((completedQuestSlots / totalQuestSlots) * 100),
       totalAttempts: progress.length,
     },
+  };
+}
+
+export async function getStudentActivity(teacherId: string, studentId: string) {
+  const student = await assertTeacherCanViewStudent(teacherId, studentId);
+
+  const recentAttempts = await prisma.answerAttempt.findMany({
+    where: { studentId, section: { teacherId } },
+    include: {
+      question: { select: { equation: true, difficulty: true } },
+      quest: { select: { id: true, title: true, topic: true, levelNumber: true } },
+      section: { select: { id: true, name: true } },
+    },
+    orderBy: { createdAt: "desc" },
+    take: 50,
+  });
+
+  const questAttempts = await prisma.questAttempt.findMany({
+    where: { studentId, section: { teacherId } },
+    include: {
+      quest: { select: { id: true, title: true, topic: true, levelNumber: true } },
+      section: { select: { id: true, name: true } },
+    },
+    orderBy: { startedAt: "desc" },
+  });
+
+  return {
+    student: {
+      id: student.id,
+      name: student.name,
+      email: student.email,
+      avatarUrl: student.avatarUrl,
+      xp: student.xp,
+      coins: student.coins,
+      lastLoginAt: student.lastLoginAt,
+    },
+    recentAttempts: recentAttempts.map((a) => ({
+      id: a.id,
+      equation: a.question.equation,
+      selectedAnswer: a.selectedAnswer,
+      isCorrect: a.isCorrect,
+      difficulty: a.question.difficulty,
+      questTitle: a.quest.title,
+      questTopic: a.quest.topic,
+      sectionName: a.section.name,
+      createdAt: a.createdAt,
+    })),
+    questAttempts: questAttempts.map((qa) => ({
+      id: qa.id,
+      attemptNo: qa.attemptNo,
+      status: qa.status,
+      questTitle: qa.quest.title,
+      questTopic: qa.quest.topic,
+      sectionName: qa.section.name,
+      startedAt: qa.startedAt,
+      completedAt: qa.completedAt,
+    })),
   };
 }

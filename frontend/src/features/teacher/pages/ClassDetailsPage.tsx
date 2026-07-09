@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
+  Activity as ActivityIcon,
   ArrowLeft,
   BookOpenText,
   Copy,
@@ -30,6 +31,22 @@ import {
   type TeacherSection,
 } from "@/features/teacher/services/teacherService";
 import type { TeacherStudent } from "@/features/teacher/types/teacher.types";
+import { StudentActivityDialog } from "@/features/teacher/components/StudentActivityDialog";
+
+function formatLastActive(dateStr: string | null | undefined): string {
+  if (!dateStr) return "Never";
+  const date = new Date(dateStr);
+  const now = Date.now();
+  const diffMs = now - date.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays < 7) return `${diffDays}d ago`;
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+}
 
 type ClassDetailsPageProps = {
   classId: string;
@@ -68,6 +85,9 @@ function toTeacherStudent(
     weakAreas: accuracy < 70 ? ["Needs review"] : [],
     currentQuest: student.currentQuest?.title ?? "No active quest",
     status: student.status,
+    lastLoginAt: (student as any).lastLoginAt,
+    totalAttempts: (student as any).totalAttempts ?? 0,
+    correctAttempts: (student as any).correctAttempts ?? 0,
   };
 }
 
@@ -94,6 +114,7 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
     solutionStepsText: "",
     tipsText: "",
   });
+  const [activityStudent, setActivityStudent] = useState<TeacherStudent | null>(null);
 
   const load = async () => {
     const nextDetails = await fetchTeacherClassDetails(classId);
@@ -496,6 +517,8 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
                 <th className="p-4">Grade</th>
                 <th className="p-4">Accuracy</th>
                 <th className="p-4">Progress %</th>
+                <th className="p-4">Attempts</th>
+                <th className="p-4">Last Active</th>
                 <th className="p-4">Current Quest</th>
                 <th className="p-4">Status</th>
                 <th className="p-4">Actions</th>
@@ -544,6 +567,23 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
                   </td>
                   <td className="p-4">{student.accuracy}%</td>
                   <td className="p-4">{student.completion}%</td>
+                  <td className="p-4">
+                    {student.totalAttempts !== undefined ? (
+                      <span>
+                        {student.totalAttempts}
+                        {student.correctAttempts !== undefined ? (
+                          <span className="text-stone-foreground/50">
+                            {" "}({student.correctAttempts} correct)
+                          </span>
+                        ) : null}
+                      </span>
+                    ) : (
+                      <span className="text-stone-foreground/50">--</span>
+                    )}
+                  </td>
+                  <td className="p-4 text-stone-foreground/70">
+                    {formatLastActive(student.lastLoginAt)}
+                  </td>
                   <td className="p-4 text-stone-foreground/70">{student.currentQuest}</td>
                   <td className="p-4">
                     <span
@@ -560,6 +600,13 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
                   </td>
                   <td className="p-4">
                     <div className="flex gap-2">
+                      <button
+                        type="button"
+                        className="btn-game btn-stone text-xs"
+                        onClick={() => setActivityStudent(student)}
+                      >
+                        Activity
+                      </button>
                       <button
                         type="button"
                         className="btn-game btn-stone text-xs"
@@ -777,6 +824,14 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
             </div>
           </section>
         </div>
+      ) : null}
+
+      {activityStudent ? (
+        <StudentActivityDialog
+          student={activityStudent}
+          open
+          onClose={() => setActivityStudent(null)}
+        />
       ) : null}
     </div>
   );
