@@ -1,11 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, BookOpenText, CheckCircle2, Loader2, Lock, Play, Trophy } from "lucide-react";
+import { ArrowLeft, BookCheck, BookOpenText, CheckCircle2, FileQuestion, Loader2, Lock, Play, Swords, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ForestBackground } from "@/components/ForestBackground";
 import { StudentNavbar } from "@/features/student/components/StudentNavbar";
 import {
   fetchStudentClass,
+  fetchStudentClassContent,
   fetchStudentClassLeaderboard,
   fetchStudentClassProgress,
   fetchStudentClassQuestGuides,
@@ -17,6 +18,7 @@ import {
   type StudentClass,
   type StudentClassLeaderboardRow,
   type StudentClassProgress,
+  type StudentContentItem,
   type StudentQuestGuide,
 } from "@/features/student/services/studentService";
 import type { StudentProgress } from "@/features/student/types/student.types";
@@ -33,10 +35,12 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
   const [quests, setQuests] = useState<StudentAssignedQuest[]>([]);
   const [classProgress, setClassProgress] = useState<StudentClassProgress | null>(null);
   const [leaderboard, setLeaderboard] = useState<StudentClassLeaderboardRow[]>([]);
+  const [contentItems, setContentItems] = useState<StudentContentItem[]>([]);
+  const [loadingContent, setLoadingContent] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const [nextClass, nextGuides, nextQuests, nextProgress, nextLeaderboard, dashboard] =
+    const [nextClass, nextGuides, nextQuests, nextProgress, nextLeaderboard, dashboard, nextContent] =
       await Promise.all([
         fetchStudentClass(classId),
         fetchStudentClassQuestGuides(classId),
@@ -44,6 +48,7 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
         fetchStudentClassProgress(classId),
         fetchStudentClassLeaderboard(classId),
         fetchStudentDashboard(),
+        fetchStudentClassContent(classId),
       ]);
     setProgress(toStudentProgressFromDashboard(dashboard, progress));
     setClassInfo(nextClass);
@@ -51,6 +56,7 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
     setQuests(nextQuests);
     setClassProgress(nextProgress);
     setLeaderboard(nextLeaderboard);
+    setContentItems(nextContent.content ?? []);
   };
 
   useEffect(() => {
@@ -312,6 +318,71 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                 )}
               </div>
             </section>
+
+            {contentItems.length > 0 ? (
+              <section className="mb-8">
+                <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+                  <div>
+                    <p className="font-display text-sm uppercase tracking-[0.24em] text-accent">
+                      Classwork
+                    </p>
+                    <h2 className="font-display text-3xl text-primary">Assignments &amp; Tests</h2>
+                  </div>
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  {contentItems.map((item) => {
+                    const attempt = item.attempts?.find((a) => a.submittedAt);
+                    const completed = !!attempt;
+                    return (
+                      <Link
+                        key={item.id}
+                        to="/student/content/$contentId"
+                        params={{ contentId: item.id }}
+                        className="quest-panel p-4 transition-colors hover:border-primary/30"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="rounded-lg bg-black/30 p-2">
+                            {item.type === "ASSIGNMENT" ? (
+                              <BookCheck className="h-5 w-5 text-primary" />
+                            ) : item.type === "PRETEST" ? (
+                              <FileQuestion className="h-5 w-5 text-primary" />
+                            ) : (
+                              <Swords className="h-5 w-5 text-primary" />
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-display text-lg text-primary truncate">
+                              {item.title}
+                            </h3>
+                            <p className="mt-0.5 flex items-center gap-2 text-xs text-stone-foreground/60">
+                              <span>
+                                {item.type === "ASSIGNMENT"
+                                  ? "Assignment"
+                                  : item.type === "PRETEST"
+                                    ? "Pre-Test"
+                                    : "Assessment"}
+                              </span>
+                              <span>&bull;</span>
+                              <span>{item.questions.length} question{item.questions.length !== 1 ? "s" : ""}</span>
+                            </p>
+                          </div>
+                        </div>
+                        {attempt ? (
+                          <p className="mt-3 flex items-center gap-1.5 text-sm text-success">
+                            <CheckCircle2 className="h-4 w-4" />
+                            Score: {attempt.score}/{attempt.totalScore}
+                          </p>
+                        ) : item.attempts?.some((a) => !a.submittedAt) ? (
+                          <p className="mt-3 flex items-center gap-1.5 text-sm text-accent">
+                            <Play className="h-4 w-4" /> In progress
+                          </p>
+                        ) : null}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
 
             <section className="quest-panel overflow-hidden">
               <div className="border-b border-primary/10 p-5">

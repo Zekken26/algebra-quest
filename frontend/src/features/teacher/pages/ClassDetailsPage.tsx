@@ -23,6 +23,7 @@ import {
   addStudentToSection,
   createTeacherGuide,
   deleteTeacherSection,
+  fetchSectionContent,
   fetchStudentProgress,
   fetchTeacherClassDetails,
   removeStudentFromSection,
@@ -31,8 +32,10 @@ import {
   type TeacherClassDetails,
   type TeacherSection,
 } from "@/features/teacher/services/teacherService";
-import type { TeacherStudent } from "@/features/teacher/types/teacher.types";
+import type { ClassContentItem, TeacherStudent } from "@/features/teacher/types/teacher.types";
 import { StudentActivityDialog } from "@/features/teacher/components/StudentActivityDialog";
+import { ClassContentCard } from "@/features/teacher/components/ClassContentCard";
+import { ClassContentForm } from "@/features/teacher/components/ClassContentForm";
 
 function formatLastActive(dateStr: string | null | undefined): string {
   if (!dateStr) return "Never";
@@ -117,6 +120,11 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
   });
   const [activityStudent, setActivityStudent] = useState<TeacherStudent | null>(null);
 
+  const [contentTab, setContentTab] = useState<"guides" | "quests" | "ASSIGNMENT" | "PRETEST" | "ASSESSMENT">("guides");
+  const [contentItems, setContentItems] = useState<ClassContentItem[]>([]);
+  const [loadingContent, setLoadingContent] = useState(false);
+  const [creatingContentType, setCreatingContentType] = useState<"ASSIGNMENT" | "PRETEST" | "ASSESSMENT" | null>(null);
+
   const load = async () => {
     const nextDetails = await fetchTeacherClassDetails(classId);
     setDetails(nextDetails);
@@ -140,6 +148,16 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
       ),
     );
   }, [details]);
+
+  useEffect(() => {
+    if (contentTab !== "guides" && contentTab !== "quests") {
+      setLoadingContent(true);
+      void fetchSectionContent(classId, contentTab)
+        .then((res) => setContentItems(res.content ?? []))
+        .catch(() => toast.error("Unable to load content."))
+        .finally(() => setLoadingContent(false));
+    }
+  }, [contentTab, classId]);
 
   const students = useMemo(
     () => details?.students.map((student) => toTeacherStudent(student, classId)) ?? [],
@@ -513,8 +531,9 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
             <div>
               <h2 className="font-display text-xl text-primary">Assigned Content</h2>
               <p className="text-sm text-stone-foreground/70">
-                {details?.assignedGuides.length ?? 0} guides - {details?.assignedQuests.length ?? 0}{" "}
-                quests
+                {details?.assignedGuides.length ?? 0} guides &bull;{" "}
+                {details?.assignedQuests.length ?? 0} quests &bull; {contentItems.length}{" "}
+                {contentTab === "ASSIGNMENT" ? "assignments" : contentTab === "PRETEST" ? "pre-tests" : contentTab === "ASSESSMENT" ? "assessments" : ""}
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -532,23 +551,72 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
               >
                 <Plus className="h-4 w-4" /> Create Quest
               </button>
+              {contentTab !== "guides" && contentTab !== "quests" ? (
+                <button
+                  type="button"
+                  className="btn-game text-sm"
+                  onClick={() => setCreatingContentType(contentTab as "ASSIGNMENT" | "PRETEST" | "ASSESSMENT")}
+                >
+                  <Plus className="h-4 w-4" /> New {contentTab === "ASSIGNMENT" ? "Assignment" : contentTab === "PRETEST" ? "Pre-Test" : "Assessment"}
+                </button>
+              ) : null}
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-1">
+          <div className="mb-4 flex flex-wrap gap-1">
+            {(["guides", "quests", "ASSIGNMENT", "PRETEST", "ASSESSMENT"] as const).map((tab) => {
+              const label =
+                tab === "guides" ? "Guides" : tab === "quests" ? "Quests" : tab === "ASSIGNMENT" ? "Assignments" : tab === "PRETEST" ? "Pre-Tests" : "Assessments";
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    contentTab === tab
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-black/20 text-stone-foreground/70 hover:bg-black/30"
+                  }`}
+                  onClick={() => setContentTab(tab)}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+
+          {contentTab === "guides" ? (
             <ContentList
-              title="Quest Guides"
+              title=""
               items={
                 details?.assignedGuides.map((guide) => `${guide.title} - ${guide.topic}`) ?? []
               }
             />
+          ) : contentTab === "quests" ? (
             <ContentList
-              title="Quests"
+              title=""
               items={
                 details?.assignedQuests.map((quest) => `${quest.title} - ${quest.topic}`) ?? []
               }
             />
-          </div>
+          ) : loadingContent ? (
+            <p className="py-4 text-center text-sm text-stone-foreground/60">Loading...</p>
+          ) : contentItems.length === 0 ? (
+            <p className="py-4 text-center text-sm text-stone-foreground/60">
+              No {contentTab === "ASSIGNMENT" ? "assignments" : contentTab === "PRETEST" ? "pre-tests" : "assessments"} yet.
+            </p>
+          ) : (
+            <div className="grid gap-3">
+              {contentItems.map((item) => (
+                <ClassContentCard
+                  key={item.id}
+                  content={item}
+                  onDeleted={() => {
+                    setContentItems((prev) => prev.filter((c) => c.id !== item.id));
+                  }}
+                />
+              ))}
+            </div>
+          )}
         </section>
       </div>
 
@@ -825,6 +893,24 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
             />
           </div>
         </div>
+      ) : null}
+      {creatingContentType ? (
+        <ClassContentForm
+          type={creatingContentType}
+          classId={classId}
+          sectionId={classId}
+          onClose={() => setCreatingContentType(null)}
+          onCreated={() => {
+            setCreatingContentType(null);
+            if (contentTab === "ASSIGNMENT" || contentTab === "PRETEST" || contentTab === "ASSESSMENT") {
+              setLoadingContent(true);
+              void fetchSectionContent(classId, contentTab)
+                .then((res) => setContentItems(res.content ?? []))
+                .catch(() => toast.error("Unable to load content."))
+                .finally(() => setLoadingContent(false));
+            }
+          }}
+        />
       ) : null}
       {studentToRemove ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">

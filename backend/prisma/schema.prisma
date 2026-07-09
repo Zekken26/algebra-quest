@@ -29,6 +29,12 @@ enum QuestAttemptStatus {
   FAILED
 }
 
+enum ContentType {
+  ASSIGNMENT
+  PRETEST
+  ASSESSMENT
+}
+
 model User {
   id         String     @id @default(cuid())
   name       String
@@ -53,6 +59,8 @@ model User {
   shopPurchases   ShopPurchase[]
   questAttempts   QuestAttempt[]
   questionProgress QuestionProgress[]
+  classContents   ClassContent[]     @relation("TeacherContent")
+  contentAttempts ContentAttempt[]
 
   @@index([role])
 }
@@ -74,6 +82,8 @@ model ClassSection {
   answerAttempts  AnswerAttempt[]
   questAttempts   QuestAttempt[]
   questionProgress QuestionProgress[]
+  classContents   ClassContent[]
+  contentAttempts ContentAttempt[]
 
   @@unique([teacherId, name])
   @@index([teacherId])
@@ -296,4 +306,77 @@ model ShopPurchase {
 
   @@index([studentId])
   @@index([questId])
+}
+
+model ClassContent {
+  id               String      @id @default(cuid())
+  title            String
+  type             ContentType
+  instructions     String?
+  timeLimitMinutes Int?
+  maxScore         Int?
+  isPublished      Boolean     @default(false)
+  teacherId        String
+  sectionId        String
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  teacher   User             @relation("TeacherContent", fields: [teacherId], references: [id], onDelete: Cascade)
+  section   ClassSection     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  questions ContentQuestion[]
+  attempts  ContentAttempt[]
+
+  @@index([teacherId])
+  @@index([sectionId])
+}
+
+model ContentQuestion {
+  id            String   @id @default(cuid())
+  contentId     String
+  equation      String
+  choices       String[]
+  correctAnswer String
+  explanation   String   @default("")
+  points        Int      @default(1)
+  difficulty    String   @default("Medium")
+  imageUrl      String?
+
+  content ClassContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  answers ContentAnswer[]
+
+  @@index([contentId])
+}
+
+model ContentAttempt {
+  id          String   @id @default(cuid())
+  contentId   String
+  studentId   String
+  sectionId   String
+  score       Int?
+  maxScore    Int?
+  status      String   @default("ACTIVE")
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+
+  content ClassContent @relation(fields: [contentId], references: [id], onDelete: Cascade)
+  student User         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  section ClassSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  answers ContentAnswer[]
+
+  @@index([contentId, studentId])
+  @@index([studentId])
+}
+
+model ContentAnswer {
+  id             String   @id @default(cuid())
+  attemptId      String
+  questionId     String
+  selectedAnswer String?
+  isCorrect      Boolean
+  answeredAt     DateTime @default(now())
+
+  attempt  ContentAttempt  @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question ContentQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@index([attemptId])
 }

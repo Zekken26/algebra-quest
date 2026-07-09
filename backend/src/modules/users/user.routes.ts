@@ -3,6 +3,7 @@ import { requireAuth } from "../../middleware/auth.middleware";
 import { requireRole } from "../../middleware/role.middleware";
 import { uploadAvatar } from "../../middleware/upload.middleware";
 import * as progressController from "../progress/progress.controller";
+import * as contentStudentController from "../content/content.student.controller";
 import * as userController from "./user.controller";
 
 export const userRouter = Router();
@@ -29,3 +30,12 @@ userRouter.get("/sections/:sectionId/quest-guides", requireAuth, requireRole("ST
 userRouter.get("/sections/:sectionId/quests", requireAuth, requireRole("STUDENT"), userController.getStudentSectionQuests);
 userRouter.get("/sections/:sectionId/progress", requireAuth, requireRole("STUDENT"), userController.getStudentSectionProgress);
 userRouter.put("/profile", requireAuth, requireRole("STUDENT"), uploadAvatar, userController.updateStudentProfile);
+
+userRouter.get("/classes/:classId/content", requireAuth, requireRole("STUDENT"), contentStudentController.getStudentContent);
+userRouter.get("/content/:contentId", requireAuth, requireRole("STUDENT"), contentStudentController.getStudentContentDetail);
+userRouter.post("/content/:contentId/start", requireAuth, requireRole("STUDENT"), contentStudentController.startStudentContent);
+userRouter.post("/content/:contentId/answer", requireAuth, requireRole("STUDENT"), contentStudentController.answerStudentContent);
+userRouter.post("/content/:contentId/submit", requireAuth, requireRole("STUDENT"), contentStudentController.submitStudentContent);
+userRouter.get("/content/:contentId/attempts", requireAuth, requireRole("STUDENT"), contentStudentController.getStudentContentAttempts);
+
+userRouter.get("/sections/:sectionId/content", requireAuth, requireRole("STUDENT"), contentStudentController.getStudentContent);

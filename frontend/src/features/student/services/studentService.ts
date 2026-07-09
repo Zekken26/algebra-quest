@@ -966,3 +966,82 @@ export async function purchaseShopItem(itemType: ShopItemType, questId?: string)
 
   return payload.data ?? null;
 }
+
+export type StudentContentItem = {
+  id: string;
+  title: string;
+  type: "ASSIGNMENT" | "PRETEST" | "ASSESSMENT";
+  instructions: string | null;
+  timeLimitMinutes: number | null;
+  maxScore: number | null;
+  sectionId: string;
+  questions: Array<{
+    id: string;
+    equation: string;
+    choices: string[];
+    correctAnswer: string;
+    explanation: string;
+    points: number;
+    difficulty: string;
+    imageUrl: string | null;
+  }>;
+  attempts: Array<{
+    id: string;
+    startedAt: string;
+    submittedAt: string | null;
+    score: number | null;
+    totalScore: number | null;
+    completed: boolean;
+    answers: Array<{
+      id: string;
+      selectedAnswer: string | null;
+      isCorrect: boolean;
+      questionId: string;
+    }>;
+  }>;
+};
+
+export async function fetchStudentClassContent(classId: string, type?: string) {
+  const params = type ? `?type=${type}` : "";
+  return apiRequest<{ content: StudentContentItem[] }>(`/user/classes/${classId}/content${params}`);
+}
+
+export async function fetchStudentContentDetail(contentId: string) {
+  return apiRequest<{ content: StudentContentItem }>(`/user/content/${contentId}`);
+}
+
+export async function startStudentContentAttempt(contentId: string) {
+  return apiRequest<{ attempt: StudentContentItem["attempts"][number] }>(
+    `/user/content/${contentId}/start`,
+    { method: "POST" },
+  );
+}
+
+export async function answerStudentContentQuestion(
+  contentId: string,
+  questionId: string,
+  selectedAnswer: string,
+) {
+  return apiRequest<{
+    isCorrect: boolean;
+    correctAnswer: string;
+    explanation: string;
+  }>(`/user/content/${contentId}/answer`, {
+    method: "POST",
+    body: JSON.stringify({ questionId, selectedAnswer }),
+  });
+}
+
+export async function submitStudentContentAttempt(contentId: string) {
+  return apiRequest<{
+    score: number;
+    totalScore: number;
+    passed: boolean;
+  }>(`/user/content/${contentId}/submit`, { method: "POST" });
+}
+
+export async function fetchStudentContentAttempts(contentId: string) {
+  return apiRequest<{ attempts: StudentContentItem["attempts"] }>(
+    `/user/content/${contentId}/attempts`,
+  );
+}

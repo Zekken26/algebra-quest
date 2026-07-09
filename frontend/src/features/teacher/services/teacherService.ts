@@ -1,6 +1,7 @@
 import { getAuth, saveAuth } from "@/lib/store";
 import type {
   AnalyticsPoint,
+  ClassContentItem,
   DashboardStats,
   TeacherActivity,
   TeacherClass,
@@ -395,6 +396,37 @@ export async function fetchTeacherClass(classId: string) {
 
 export async function fetchTeacherClassDetails(classId: string) {
   return apiRequest<TeacherClassDetails>(`/teacher/classes/${classId}`);
+}
+
+export async function fetchSectionContent(sectionId: string, type?: string) {
+  const params = type ? `?type=${type}` : "";
+  return apiRequest<{ content: ClassContentItem[] }>(`/teacher/sections/${sectionId}/content${params}`);
+}
+
+export async function createClassContent(input: {
+  title: string;
+  type: string;
+  instructions?: string;
+  timeLimitMinutes?: number | null;
+  isPublished?: boolean;
+  classId?: string | null;
+  sectionId?: string | null;
+  questions?: Array<{
+    equation: string;
+    choices: string[];
+    correctAnswer: string;
+    explanation: string;
+    points?: number;
+  }>;
+}) {
+  return apiRequest<{ content: ClassContentItem }>("/teacher/content", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+}
+
+export async function deleteClassContent(contentId: string) {
+  return apiRequest<void>(`/teacher/content/${contentId}`, { method: "DELETE" });
 }
 
 export async function fetchStudentActivity(studentId: string) {

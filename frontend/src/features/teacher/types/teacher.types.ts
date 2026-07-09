@@ -71,6 +71,35 @@ export type DashboardStats = {
   recentActivity: TeacherActivity[];
 };
 
+export type ClassContentType = "ASSIGNMENT" | "PRETEST" | "ASSESSMENT";
+
+export type ClassContentQuestion = {
+  id: string;
+  equation: string;
+  choices: string[];
+  correctAnswer: string;
+  explanation: string;
+  points: number;
+  difficulty: string;
+  imageUrl?: string | null;
+};
+
+export type ClassContentItem = {
+  id: string;
+  title: string;
+  type: ClassContentType;
+  instructions: string | null;
+  timeLimitMinutes: number | null;
+  maxScore: number | null;
+  isPublished: boolean;
+  teacherId: string;
+  sectionId: string;
+  createdAt: string;
+  updatedAt: string;
+  questions: ClassContentQuestion[];
+  _count?: { questions: number; attempts: number };
+};
+
 export type AnalyticsPoint = {
   label: string;
   completion: number;

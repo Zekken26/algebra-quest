@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth, requireRole } from "../../middleware/auth.middleware";
 import { uploadQuestImage } from "../../middleware/upload.middleware";
 import * as teacherController from "./teacher.controller";
+import * as contentController from "./content.controller";
 import { teacherProfileRouter } from "./teacherProfile.routes";
 
 export const teacherRouter = Router();
@@ -63,3 +64,9 @@ teacherRouter.post("/quests/:questId/questions", teacherController.addQuestionsT
 
 teacherRouter.put("/questions/:questionId", teacherController.updateQuestion);
 teacherRouter.delete("/questions/:questionId", teacherController.deleteQuestion);
+
+teacherRouter.post("/content", contentController.createClassContent);
+teacherRouter.get("/sections/:sectionId/content", contentController.getClassContent);
+teacherRouter.get("/content/:contentId", contentController.getContentDetail);
+teacherRouter.put("/content/:contentId", contentController.updateClassContent);
+teacherRouter.delete("/content/:contentId", contentController.deleteClassContent);

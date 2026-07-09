@@ -28,6 +28,7 @@ import { Route as StudentGradesRouteImport } from './routes/student.grades'
 import { Route as TeacherQuestsCreateRouteImport } from './routes/teacher.quests.create'
 import { Route as TeacherClassesClassIdRouteImport } from './routes/teacher.classes_.$classId'
 import { Route as StudentProfileEditRouteImport } from './routes/student.profile.edit'
+import { Route as StudentContentContentIdRouteImport } from './routes/student.content.$contentId'
 import { Route as StudentClassesClassIdRouteImport } from './routes/student.classes.$classId'
 import { Route as StudentQuestsQuestIdLessonRouteImport } from './routes/student.quests.$questId.lesson'
 import { Route as StudentQuestsQuestIdGameRouteImport } from './routes/student.quests.$questId.game'
@@ -130,6 +131,11 @@ const StudentProfileEditRoute = StudentProfileEditRouteImport.update({
   path: '/profile/edit',
   getParentRoute: () => StudentRoute,
 } as any)
+const StudentContentContentIdRoute = StudentContentContentIdRouteImport.update({
+  id: '/content/$contentId',
+  path: '/content/$contentId',
+  getParentRoute: () => StudentRoute,
+} as any)
 const StudentClassesClassIdRoute = StudentClassesClassIdRouteImport.update({
   id: '/classes/$classId',
   path: '/classes/$classId',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/student/': typeof StudentIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/student/classes/$classId': typeof StudentClassesClassIdRoute
+  '/student/content/$contentId': typeof StudentContentContentIdRoute
   '/student/profile/edit': typeof StudentProfileEditRoute
   '/teacher/classes/$classId': typeof TeacherClassesClassIdRoute
   '/teacher/quests/create': typeof TeacherQuestsCreateRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/student': typeof StudentIndexRoute
   '/teacher': typeof TeacherIndexRoute
   '/student/classes/$classId': typeof StudentClassesClassIdRoute
+  '/student/content/$contentId': typeof StudentContentContentIdRoute
   '/student/profile/edit': typeof StudentProfileEditRoute
   '/teacher/classes/$classId': typeof TeacherClassesClassIdRoute
   '/teacher/quests/create': typeof TeacherQuestsCreateRoute
@@ -237,6 +245,7 @@ export interface FileRoutesById {
   '/student/': typeof StudentIndexRoute
   '/teacher/': typeof TeacherIndexRoute
   '/student/classes/$classId': typeof StudentClassesClassIdRoute
+  '/student/content/$contentId': typeof StudentContentContentIdRoute
   '/student/profile/edit': typeof StudentProfileEditRoute
   '/teacher/classes_/$classId': typeof TeacherClassesClassIdRoute
   '/teacher/quests/create': typeof TeacherQuestsCreateRoute
@@ -266,6 +275,7 @@ export interface FileRouteTypes {
     | '/student/'
     | '/teacher/'
     | '/student/classes/$classId'
+    | '/student/content/$contentId'
     | '/student/profile/edit'
     | '/teacher/classes/$classId'
     | '/teacher/quests/create'
@@ -291,6 +301,7 @@ export interface FileRouteTypes {
     | '/student'
     | '/teacher'
     | '/student/classes/$classId'
+    | '/student/content/$contentId'
     | '/student/profile/edit'
     | '/teacher/classes/$classId'
     | '/teacher/quests/create'
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/student/'
     | '/teacher/'
     | '/student/classes/$classId'
+    | '/student/content/$contentId'
     | '/student/profile/edit'
     | '/teacher/classes_/$classId'
     | '/teacher/quests/create'
@@ -470,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StudentProfileEditRouteImport
       parentRoute: typeof StudentRoute
     }
+    '/student/content/$contentId': {
+      id: '/student/content/$contentId'
+      path: '/content/$contentId'
+      fullPath: '/student/content/$contentId'
+      preLoaderRoute: typeof StudentContentContentIdRouteImport
+      parentRoute: typeof StudentRoute
+    }
     '/student/classes/$classId': {
       id: '/student/classes/$classId'
       path: '/classes/$classId'
@@ -521,6 +540,7 @@ interface StudentRouteChildren {
   StudentProgressRoute: typeof StudentProgressRoute
   StudentIndexRoute: typeof StudentIndexRoute
   StudentClassesClassIdRoute: typeof StudentClassesClassIdRoute
+  StudentContentContentIdRoute: typeof StudentContentContentIdRoute
   StudentProfileEditRoute: typeof StudentProfileEditRoute
   StudentModulesModuleIdGameRoute: typeof StudentModulesModuleIdGameRoute
   StudentModulesModuleIdLessonRoute: typeof StudentModulesModuleIdLessonRoute
@@ -535,6 +555,7 @@ const StudentRouteChildren: StudentRouteChildren = {
   StudentProgressRoute: StudentProgressRoute,
   StudentIndexRoute: StudentIndexRoute,
   StudentClassesClassIdRoute: StudentClassesClassIdRoute,
+  StudentContentContentIdRoute: StudentContentContentIdRoute,
   StudentProfileEditRoute: StudentProfileEditRoute,
   StudentModulesModuleIdGameRoute: StudentModulesModuleIdGameRoute,
   StudentModulesModuleIdLessonRoute: StudentModulesModuleIdLessonRoute,
