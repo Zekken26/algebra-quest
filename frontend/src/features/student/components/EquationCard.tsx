@@ -31,10 +31,10 @@ export function EquationCard({ moduleTitle, question }: EquationCardProps) {
         </p>
         <h1 className="font-display text-2xl text-primary sm:text-3xl">Equation Challenge</h1>
       </div>
-      <div className="relative p-6 text-center sm:p-10">
+      <div className="relative p-8 text-center sm:p-12">
         <div className="absolute inset-x-10 top-8 h-24 rounded-full bg-primary/10 blur-3xl" />
         {question.imageUrl ? (
-          <div className="relative mx-auto mb-4 max-w-md overflow-hidden rounded-xl border border-primary/20 bg-black/35 p-2">
+          <div className="relative mx-auto mb-6 max-w-md overflow-hidden rounded-xl border border-primary/20 bg-black/35 p-2">
             <img
               src={getQuestImageUrl(question.imageUrl)}
               alt="Question Challenge Reference"
@@ -46,7 +46,7 @@ export function EquationCard({ moduleTitle, question }: EquationCardProps) {
         <MathRenderer
           latex={question.prompt}
           displayMode
-          className="relative text-5xl text-primary glow-text sm:text-7xl"
+          className="relative text-2xl text-primary glow-text sm:text-4xl"
         />
         ) : null}
       </div>
