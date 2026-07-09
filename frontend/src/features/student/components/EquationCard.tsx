@@ -32,9 +32,6 @@ export function EquationCard({ moduleTitle, question }: EquationCardProps) {
       </div>
       <div className="relative p-6 text-center sm:p-10">
         <div className="absolute inset-x-10 top-8 h-24 rounded-full bg-primary/10 blur-3xl" />
-        <p className="relative mb-3 text-sm uppercase tracking-[0.28em] text-stone-foreground/60">
-          Solve for x
-        </p>
         {question.imageUrl ? (
           <div className="relative mx-auto mb-4 max-w-md overflow-hidden rounded-xl border border-primary/20 bg-black/35 p-2">
             <img
@@ -45,9 +42,9 @@ export function EquationCard({ moduleTitle, question }: EquationCardProps) {
           </div>
         ) : null}
         {question.prompt ? (
-          <p className="relative font-display text-5xl text-primary glow-text sm:text-7xl">
-            {question.prompt}
-          </p>
+        <p className="relative text-5xl text-primary glow-text sm:text-7xl">
+          {question.prompt}
+        </p>
         ) : null}
       </div>
     </motion.div>

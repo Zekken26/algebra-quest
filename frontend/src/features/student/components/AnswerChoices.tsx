@@ -33,7 +33,7 @@ export function AnswerChoices({
             onClick={() => onChoose(choice)}
             className="answer-card"
           >
-            x = {choice}
+            {choice}
           </button>
         );
       })}

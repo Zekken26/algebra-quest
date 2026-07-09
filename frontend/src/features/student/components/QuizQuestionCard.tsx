@@ -36,7 +36,7 @@ export function QuizQuestionCard({
       </div>
 
       <div className="panel-parchment p-6 text-center">
-        <p className="font-display text-4xl text-parchment-foreground sm:text-6xl">
+        <p className="text-4xl text-parchment-foreground sm:text-6xl">
           {question.prompt}
         </p>
       </div>
@@ -49,7 +49,7 @@ export function QuizQuestionCard({
             onClick={() => onSelect(choice)}
             className={`answer-card ${selectedAnswer === choice ? "border-primary shadow-[var(--shadow-glow-gold)]" : ""}`}
           >
-            x = {choice}
+            {choice}
           </button>
         ))}
       </div>
