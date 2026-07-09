@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { AlgebraQuestion } from "@/features/student/types/student.types";
+import { MathRenderer } from "@/shared/components/MathRenderer";
 
 type EquationCardProps = {
   moduleTitle: string;
@@ -42,9 +43,11 @@ export function EquationCard({ moduleTitle, question }: EquationCardProps) {
           </div>
         ) : null}
         {question.prompt ? (
-        <p className="relative text-5xl text-primary glow-text sm:text-7xl">
-          {question.prompt}
-        </p>
+        <MathRenderer
+          latex={question.prompt}
+          displayMode
+          className="relative text-5xl text-primary glow-text sm:text-7xl"
+        />
         ) : null}
       </div>
     </motion.div>

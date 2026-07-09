@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import type { AlgebraQuestion } from "@/features/student/types/student.types";
+import { MathRenderer } from "@/shared/components/MathRenderer";
 
 type QuizQuestionCardProps = {
   question: AlgebraQuestion;
@@ -36,9 +37,11 @@ export function QuizQuestionCard({
       </div>
 
       <div className="panel-parchment p-6 text-center">
-        <p className="text-4xl text-parchment-foreground sm:text-6xl">
-          {question.prompt}
-        </p>
+        <MathRenderer
+          latex={question.prompt}
+          displayMode
+          className="text-4xl text-parchment-foreground sm:text-6xl"
+        />
       </div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -49,7 +52,7 @@ export function QuizQuestionCard({
             onClick={() => onSelect(choice)}
             className={`answer-card ${selectedAnswer === choice ? "border-primary shadow-[var(--shadow-glow-gold)]" : ""}`}
           >
-            {choice}
+            <MathRenderer latex={choice} />
           </button>
         ))}
       </div>

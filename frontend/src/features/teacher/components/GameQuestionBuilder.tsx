@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { MathInput } from "@/shared/components/MathInput";
+import { MathRenderer } from "@/shared/components/MathRenderer";
 
 type GameQuestionBuilderProps = {
   disabled?: boolean;
@@ -41,12 +43,18 @@ export function GameQuestionBuilder({ disabled, onAddQuestion }: GameQuestionBui
     <section className="teacher-card p-5">
       <h2 className="font-display text-xl text-primary">Game Question Builder</h2>
       <div className="mt-4 grid gap-3">
-        <input
+        <MathInput
           className="teacher-input"
           placeholder="Equation challenge"
           value={equation}
-          onChange={(event) => setEquation(event.target.value)}
+          onChange={setEquation}
         />
+        {equation ? (
+          <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
+            <span className="text-xs font-semibold text-stone-foreground/60 block mb-1">Preview</span>
+            <MathRenderer latex={equation} displayMode />
+          </div>
+        ) : null}
         <input
           className="teacher-input"
           placeholder="Correct answer"

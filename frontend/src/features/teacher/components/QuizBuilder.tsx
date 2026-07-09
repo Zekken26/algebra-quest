@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { MathInput } from "@/shared/components/MathInput";
+import { MathRenderer } from "@/shared/components/MathRenderer";
 
 type QuizBuilderProps = {
   disabled?: boolean;
@@ -41,12 +43,18 @@ export function QuizBuilder({ disabled, onAddQuestion }: QuizBuilderProps) {
     <section className="teacher-card p-5">
       <h2 className="font-display text-xl text-primary">Quiz Builder</h2>
       <div className="mt-4 grid gap-3">
-        <input
+        <MathInput
           className="teacher-input"
           placeholder="Question prompt, e.g. 2x + 5 = 15"
           value={equation}
-          onChange={(event) => setEquation(event.target.value)}
+          onChange={setEquation}
         />
+        {equation ? (
+          <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
+            <span className="text-xs font-semibold text-stone-foreground/60 block mb-1">Preview</span>
+            <MathRenderer latex={equation} displayMode />
+          </div>
+        ) : null}
         <div className="grid gap-3 sm:grid-cols-2">
           {choices.map((choice, index) => (
             <input

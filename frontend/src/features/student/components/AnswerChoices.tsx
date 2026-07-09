@@ -1,4 +1,5 @@
 import type { QuizStatus } from "@/features/student/types/student.types";
+import { MathRenderer } from "@/shared/components/MathRenderer";
 
 type AnswerChoicesProps = {
   choices: string[];
@@ -33,7 +34,7 @@ export function AnswerChoices({
             onClick={() => onChoose(choice)}
             className="answer-card"
           >
-            {choice}
+            <MathRenderer latex={choice} />
           </button>
         );
       })}

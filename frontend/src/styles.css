@@ -245,6 +245,19 @@
     box-shadow: 0 0 0 3px oklch(0.78 0.16 80 / 0.18);
   }
 
+  math-field.teacher-input {
+    min-height: 2.75rem;
+  }
+
+  math-field.teacher-input::part(virtual-keyboard-toggle) {
+    color: var(--color-primary);
+    opacity: 0.7;
+  }
+
+  math-field.teacher-input::part(virtual-keyboard-toggle):hover {
+    opacity: 1;
+  }
+
   .student-nav-chip {
     display: inline-flex;
     min-height: 1.9rem;

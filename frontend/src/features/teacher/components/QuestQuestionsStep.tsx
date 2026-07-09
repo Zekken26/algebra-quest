@@ -3,6 +3,8 @@ import { useRef, useState } from "react";
 import { toast } from "sonner";
 import { uploadTeacherQuestAsset } from "@/features/teacher/services/teacherService";
 import type { QuestQuestionDraft } from "@/features/teacher/components/CreateQuestWizard";
+import { MathInput } from "@/shared/components/MathInput";
+import { MathRenderer } from "@/shared/components/MathRenderer";
 
 type QuestQuestionsStepProps = {
   questions: QuestQuestionDraft[];
@@ -181,14 +183,20 @@ export function QuestQuestionsStep({
                     </span>
                   )}
                 </div>
-                <input
+                <MathInput
                   className="teacher-input"
                   value={question.equation}
-                  onChange={(event) =>
-                    onQuestionChange(questionIndex, { equation: event.target.value })
+                  onChange={(value) =>
+                    onQuestionChange(questionIndex, { equation: value })
                   }
                   placeholder="2x + 5 = 15"
                 />
+                {question.equation ? (
+                  <div className="mt-2 rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
+                    <span className="text-xs font-semibold text-stone-foreground/60 block mb-1">Preview</span>
+                    <MathRenderer latex={question.equation} displayMode />
+                  </div>
+                ) : null}
               </label>
 
               <div className="grid gap-3 sm:grid-cols-2">
