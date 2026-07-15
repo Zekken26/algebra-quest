@@ -1058,16 +1058,16 @@ export type StudentActivityItem = {
 
 export async function fetchStudentClassContent(classId: string, type?: string) {
   const params = type ? `?type=${type}` : "";
-  return apiRequest<{ content: StudentContentItem[] }>(`/user/classes/${classId}/content${params}`);
+  return apiRequest<{ content: StudentContentItem[] }>(`/student/classes/${classId}/content${params}`);
 }
 
 export async function fetchStudentContentDetail(contentId: string) {
-  return apiRequest<{ content: StudentContentItem }>(`/user/content/${contentId}`);
+  return apiRequest<{ content: StudentContentItem }>(`/student/content/${contentId}`);
 }
 
 export async function startStudentContentAttempt(contentId: string) {
   return apiRequest<{ attempt: StudentContentItem["attempts"][number] }>(
-    `/user/content/${contentId}/start`,
+    `/student/content/${contentId}/start`,
     { method: "POST" },
   );
 }
@@ -1081,7 +1081,7 @@ export async function answerStudentContentQuestion(
     isCorrect: boolean;
     correctAnswer: string;
     explanation: string;
-  }>(`/user/content/${contentId}/answer`, {
+  }>(`/student/content/${contentId}/answer`, {
     method: "POST",
     body: JSON.stringify({ questionId, selectedAnswer }),
   });
@@ -1092,12 +1092,12 @@ export async function submitStudentContentAttempt(contentId: string) {
     score: number;
     totalScore: number;
     passed: boolean;
-  }>(`/user/content/${contentId}/submit`, { method: "POST" });
+  }>(`/student/content/${contentId}/submit`, { method: "POST" });
 }
 
 export async function fetchStudentContentAttempts(contentId: string) {
   return apiRequest<{ attempts: StudentContentItem["attempts"] }>(
-    `/user/content/${contentId}/attempts`,
+    `/student/content/${contentId}/attempts`,
   );
 }
 
