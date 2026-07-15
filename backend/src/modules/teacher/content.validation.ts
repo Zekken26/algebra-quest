@@ -32,7 +32,12 @@ export const contentQuestionSchema = baseContentQuestionSchema.superRefine((valu
 export const createContentSchema = z.object({
   title: z.string().trim().min(2).max(160),
   type: contentTypeEnum,
+  description: z.string().trim().max(5000).nullable().optional(),
   instructions: z.string().trim().max(5000).default(""),
+  dueDate: z.string().datetime().nullable().optional(),
+  availableFrom: z.string().datetime().nullable().optional(),
+  availableTo: z.string().datetime().nullable().optional(),
+  submissionType: z.string().trim().min(1).max(20).optional(),
   timeLimitMinutes: z.coerce.number().int().nonnegative().max(180).nullable().optional(),
   isPublished: z.boolean().default(false),
   classId: optionalId,
@@ -42,7 +47,12 @@ export const createContentSchema = z.object({
 
 export const updateContentSchema = z.object({
   title: z.string().trim().min(2).max(160).optional(),
+  description: z.string().trim().max(5000).nullable().optional(),
   instructions: z.string().trim().max(5000).optional(),
+  dueDate: z.string().datetime().nullable().optional(),
+  availableFrom: z.string().datetime().nullable().optional(),
+  availableTo: z.string().datetime().nullable().optional(),
+  submissionType: z.string().trim().min(1).max(20).optional(),
   timeLimitMinutes: z.coerce.number().int().nonnegative().max(180).nullable().optional(),
   isPublished: z.boolean().optional(),
   questions: z.array(contentQuestionSchema).min(1).max(100).optional(),

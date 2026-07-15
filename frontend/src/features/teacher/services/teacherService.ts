@@ -1,5 +1,6 @@
 import { getAuth, saveAuth } from "@/lib/store";
 import type {
+  ActivityItem,
   AnalyticsPoint,
   ClassContentItem,
   DashboardStats,
@@ -706,4 +707,65 @@ export async function saveModuleDraft(module: TeacherModule) {
     difficulty: "Easy",
     isPublished: module.status === "published",
   });
+}
+
+export async function fetchClassActivities(classId: string, type?: string) {
+  const params = type ? `?type=${type}` : "";
+  return apiRequest<{ activities: ActivityItem[] }>(
+    `/teacher/activities/classes/${classId}/activities${params}`,
+  );
+}
+
+export async function createActivity(input: {
+  type: string;
+  title: string;
+  description?: string | null;
+  instructions?: string | null;
+  dueDate?: string | null;
+  availableFrom?: string | null;
+  availableTo?: string | null;
+  totalPoints?: number | null;
+  isPublished?: boolean;
+  classId?: string | null;
+  sectionId?: string | null;
+}) {
+  return apiRequest<{ activity: ActivityItem }>(
+    "/teacher/activities",
+    { method: "POST", body: JSON.stringify(input) },
+  );
+}
+
+export async function updateActivity(
+  activityId: string,
+  input: {
+    title?: string;
+    description?: string | null;
+    dueDate?: string | null;
+    availableFrom?: string | null;
+    availableTo?: string | null;
+    totalPoints?: number | null;
+    isPublished?: boolean;
+  },
+) {
+  return apiRequest<{ activity: ActivityItem }>(
+    `/teacher/activities/${activityId}`,
+    { method: "PUT", body: JSON.stringify(input) },
+  );
+}
+
+export async function togglePublishActivity(activityId: string) {
+  return apiRequest<{ activity: ActivityItem }>(
+    `/teacher/activities/${activityId}/toggle-publish`,
+    { method: "POST" },
+  );
+}
+
+export async function deleteActivity(activityId: string) {
+  return apiRequest<void>(`/teacher/activities/${activityId}`, { method: "DELETE" });
+}
+
+export async function fetchActivityDetail(activityId: string) {
+  return apiRequest<{ activity: ActivityItem }>(
+    `/teacher/activities/${activityId}`,
+  );
 }

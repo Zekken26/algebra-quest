@@ -15,7 +15,12 @@ export async function createContent(
   input: {
     title: string;
     type: ContentType;
+    description?: string | null;
     instructions?: string;
+    dueDate?: string | null;
+    availableFrom?: string | null;
+    availableTo?: string | null;
+    submissionType?: string;
     timeLimitMinutes?: number | null;
     isPublished?: boolean;
     classId?: string | null;
@@ -39,7 +44,12 @@ export async function createContent(
     data: {
       title: input.title,
       type: input.type,
+      description: input.description ?? null,
       instructions: input.instructions ?? "",
+      dueDate: input.dueDate ? new Date(input.dueDate) : null,
+      availableFrom: input.availableFrom ? new Date(input.availableFrom) : null,
+      availableTo: input.availableTo ? new Date(input.availableTo) : null,
+      submissionType: input.submissionType ?? "quiz",
       timeLimitMinutes: input.timeLimitMinutes ?? null,
       isPublished: input.isPublished ?? false,
       teacherId,
@@ -67,7 +77,12 @@ export async function updateContent(
   contentId: string,
   input: {
     title?: string;
+    description?: string | null;
     instructions?: string;
+    dueDate?: string | null;
+    availableFrom?: string | null;
+    availableTo?: string | null;
+    submissionType?: string;
     timeLimitMinutes?: number | null;
     isPublished?: boolean;
     questions?: Array<{
@@ -109,7 +124,12 @@ export async function updateContent(
     where: { id: contentId },
     data: {
       ...(input.title !== undefined ? { title: input.title } : {}),
+      ...(input.description !== undefined ? { description: input.description } : {}),
       ...(input.instructions !== undefined ? { instructions: input.instructions } : {}),
+      ...(input.dueDate !== undefined ? { dueDate: input.dueDate ? new Date(input.dueDate) : null } : {}),
+      ...(input.availableFrom !== undefined ? { availableFrom: input.availableFrom ? new Date(input.availableFrom) : null } : {}),
+      ...(input.availableTo !== undefined ? { availableTo: input.availableTo ? new Date(input.availableTo) : null } : {}),
+      ...(input.submissionType !== undefined ? { submissionType: input.submissionType } : {}),
       ...(input.timeLimitMinutes !== undefined ? { timeLimitMinutes: input.timeLimitMinutes } : {}),
       ...(input.isPublished !== undefined ? { isPublished: input.isPublished } : {}),
     },

@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
-  Activity as ActivityIcon,
   ArrowLeft,
   BookOpenText,
   Copy,
@@ -16,14 +15,12 @@ import {
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { CreateQuestWizard } from "@/features/teacher/components/CreateQuestWizard";
 import { LeaderboardTable } from "@/features/teacher/components/LeaderboardTable";
 import { TeacherHeader } from "@/features/teacher/components/TeacherHeader";
 import {
   addStudentToSection,
   createTeacherGuide,
   deleteTeacherSection,
-  fetchSectionContent,
   fetchStudentProgress,
   fetchTeacherClassDetails,
   removeStudentFromSection,
@@ -32,10 +29,9 @@ import {
   type TeacherClassDetails,
   type TeacherSection,
 } from "@/features/teacher/services/teacherService";
-import type { ClassContentItem, TeacherStudent } from "@/features/teacher/types/teacher.types";
+import type { TeacherStudent } from "@/features/teacher/types/teacher.types";
 import { StudentActivityDialog } from "@/features/teacher/components/StudentActivityDialog";
-import { ClassContentCard } from "@/features/teacher/components/ClassContentCard";
-import { ClassContentForm } from "@/features/teacher/components/ClassContentForm";
+import { ActivitySection } from "@/features/teacher/components/ActivitySection";
 
 function formatLastActive(dateStr: string | null | undefined): string {
   if (!dateStr) return "Never";
@@ -106,7 +102,6 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
   const [className, setClassName] = useState("");
   const [adding, setAdding] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [creatingQuest, setCreatingQuest] = useState(false);
   const [creatingGuide, setCreatingGuide] = useState(false);
   const [gradeDrafts, setGradeDrafts] = useState<Record<string, string>>({});
   const [savingGradeId, setSavingGradeId] = useState<string | null>(null);
@@ -119,11 +114,6 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
     tipsText: "",
   });
   const [activityStudent, setActivityStudent] = useState<TeacherStudent | null>(null);
-
-  const [contentTab, setContentTab] = useState<"guides" | "quests" | "ASSIGNMENT" | "PRETEST" | "ASSESSMENT">("guides");
-  const [contentItems, setContentItems] = useState<ClassContentItem[]>([]);
-  const [loadingContent, setLoadingContent] = useState(false);
-  const [creatingContentType, setCreatingContentType] = useState<"ASSIGNMENT" | "PRETEST" | "ASSESSMENT" | null>(null);
 
   const load = async () => {
     const nextDetails = await fetchTeacherClassDetails(classId);
@@ -148,16 +138,6 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
       ),
     );
   }, [details]);
-
-  useEffect(() => {
-    if (contentTab !== "guides" && contentTab !== "quests") {
-      setLoadingContent(true);
-      void fetchSectionContent(classId, contentTab)
-        .then((res) => setContentItems(res.content ?? []))
-        .catch(() => toast.error("Unable to load content."))
-        .finally(() => setLoadingContent(false));
-    }
-  }, [contentTab, classId]);
 
   const students = useMemo(
     () => details?.students.map((student) => toTeacherStudent(student, classId)) ?? [],
@@ -526,98 +506,11 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
           </div>
         </section>
 
-        <section className="teacher-card p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-display text-xl text-primary">Assigned Content</h2>
-              <p className="text-sm text-stone-foreground/70">
-                {details?.assignedGuides.length ?? 0} guides &bull;{" "}
-                {details?.assignedQuests.length ?? 0} quests &bull; {contentItems.length}{" "}
-                {contentTab === "ASSIGNMENT" ? "assignments" : contentTab === "PRETEST" ? "pre-tests" : contentTab === "ASSESSMENT" ? "assessments" : ""}
-              </p>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                className="btn-game btn-stone text-sm"
-                onClick={() => setCreatingGuide(true)}
-              >
-                <BookOpenText className="h-4 w-4" /> Create Guide
-              </button>
-              <button
-                type="button"
-                className="btn-game text-sm"
-                onClick={() => setCreatingQuest(true)}
-              >
-                <Plus className="h-4 w-4" /> Create Quest
-              </button>
-              {contentTab !== "guides" && contentTab !== "quests" ? (
-                <button
-                  type="button"
-                  className="btn-game text-sm"
-                  onClick={() => setCreatingContentType(contentTab as "ASSIGNMENT" | "PRETEST" | "ASSESSMENT")}
-                >
-                  <Plus className="h-4 w-4" /> New {contentTab === "ASSIGNMENT" ? "Assignment" : contentTab === "PRETEST" ? "Pre-Test" : "Assessment"}
-                </button>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="mb-4 flex flex-wrap gap-1">
-            {(["guides", "quests", "ASSIGNMENT", "PRETEST", "ASSESSMENT"] as const).map((tab) => {
-              const label =
-                tab === "guides" ? "Guides" : tab === "quests" ? "Quests" : tab === "ASSIGNMENT" ? "Assignments" : tab === "PRETEST" ? "Pre-Tests" : "Assessments";
-              return (
-                <button
-                  key={tab}
-                  type="button"
-                  className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    contentTab === tab
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-black/20 text-stone-foreground/70 hover:bg-black/30"
-                  }`}
-                  onClick={() => setContentTab(tab)}
-                >
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          {contentTab === "guides" ? (
-            <ContentList
-              title=""
-              items={
-                details?.assignedGuides.map((guide) => `${guide.title} - ${guide.topic}`) ?? []
-              }
-            />
-          ) : contentTab === "quests" ? (
-            <ContentList
-              title=""
-              items={
-                details?.assignedQuests.map((quest) => `${quest.title} - ${quest.topic}`) ?? []
-              }
-            />
-          ) : loadingContent ? (
-            <p className="py-4 text-center text-sm text-stone-foreground/60">Loading...</p>
-          ) : contentItems.length === 0 ? (
-            <p className="py-4 text-center text-sm text-stone-foreground/60">
-              No {contentTab === "ASSIGNMENT" ? "assignments" : contentTab === "PRETEST" ? "pre-tests" : "assessments"} yet.
-            </p>
-          ) : (
-            <div className="grid gap-3">
-              {contentItems.map((item) => (
-                <ClassContentCard
-                  key={item.id}
-                  content={item}
-                  onDeleted={() => {
-                    setContentItems((prev) => prev.filter((c) => c.id !== item.id));
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </section>
+        <ActivitySection
+          classId={classId}
+          currentSection={currentClassSection}
+          onQuestCreated={() => void load()}
+        />
       </div>
 
       <section className="teacher-card mb-6 overflow-hidden">
@@ -879,39 +772,6 @@ export function ClassDetailsPage({ classId }: ClassDetailsPageProps) {
           </section>
         </div>
       ) : null}
-      {creatingQuest && currentClassSection ? (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 px-4 py-8">
-          <div className="mx-auto max-w-5xl">
-            <CreateQuestWizard
-              sections={[currentClassSection]}
-              initialSectionId={classId}
-              onCancel={() => setCreatingQuest(false)}
-              onComplete={() => {
-                setCreatingQuest(false);
-                void load();
-              }}
-            />
-          </div>
-        </div>
-      ) : null}
-      {creatingContentType ? (
-        <ClassContentForm
-          type={creatingContentType}
-          classId={classId}
-          sectionId={classId}
-          onClose={() => setCreatingContentType(null)}
-          onCreated={() => {
-            setCreatingContentType(null);
-            if (contentTab === "ASSIGNMENT" || contentTab === "PRETEST" || contentTab === "ASSESSMENT") {
-              setLoadingContent(true);
-              void fetchSectionContent(classId, contentTab)
-                .then((res) => setContentItems(res.content ?? []))
-                .catch(() => toast.error("Unable to load content."))
-                .finally(() => setLoadingContent(false));
-            }
-          }}
-        />
-      ) : null}
       {studentToRemove ? (
         <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">
           <section className="teacher-card w-full max-w-md p-5">
@@ -996,21 +856,6 @@ function StatCard({
       <p className={`font-display text-2xl ${danger ? "text-destructive" : "text-primary"}`}>
         {value}
       </p>
-    </div>
-  );
-}
-
-function ContentList({ title, items }: { title: string; items: string[] }) {
-  return (
-    <div className="rounded-2xl border border-primary/15 bg-black/20 p-4">
-      <h3 className="font-display text-lg text-primary">{title}</h3>
-      <div className="mt-3 grid gap-2 text-sm text-stone-foreground/75">
-        {items.length > 0 ? (
-          items.slice(0, 5).map((item) => <p key={item}>{item}</p>)
-        ) : (
-          <p>Nothing assigned yet.</p>
-        )}
-      </div>
     </div>
   );
 }

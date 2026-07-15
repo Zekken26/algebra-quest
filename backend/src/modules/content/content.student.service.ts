@@ -1,6 +1,43 @@
 import { prisma } from "../../config/prisma";
 import { AppError } from "../../utils/AppError";
 
+async function upsertActivitySubmission(
+  studentId: string,
+  sectionId: string,
+  contentId: string,
+  status: "IN_PROGRESS" | "SUBMITTED" | "COMPLETED",
+  score?: number | null,
+  maxScore?: number | null,
+) {
+  const activity = await prisma.activity.findFirst({
+    where: { contentId, sectionId },
+    select: { id: true },
+  });
+
+  if (!activity) return;
+
+  await prisma.activitySubmission.upsert({
+    where: { activityId_studentId: { activityId: activity.id, studentId } },
+    create: {
+      activityId: activity.id,
+      studentId,
+      sectionId,
+      status: status as any,
+      score: score ?? null,
+      maxScore: maxScore ?? null,
+      startedAt: status === "IN_PROGRESS" ? new Date() : null,
+      submittedAt: status === "SUBMITTED" || status === "COMPLETED" ? new Date() : null,
+    },
+    update: {
+      status: status as any,
+      score: score ?? undefined,
+      maxScore: maxScore ?? undefined,
+      startedAt: status === "IN_PROGRESS" ? new Date() : undefined,
+      submittedAt: status === "SUBMITTED" || status === "COMPLETED" ? new Date() : undefined,
+    },
+  });
+}
+
 export async function getStudentContent(studentId: string, sectionId: string, type?: string) {
   const enrollment = await prisma.enrollment.findUnique({
     where: { studentId_sectionId: { studentId, sectionId } },
@@ -18,6 +55,19 @@ export async function getStudentContent(studentId: string, sectionId: string, ty
     where,
     include: {
       _count: { select: { questions: true } },
+      activity: {
+        select: {
+          id: true,
+          type: true,
+          dueDate: true,
+          availableFrom: true,
+          availableTo: true,
+          submissions: {
+            where: { studentId },
+            select: { status: true, score: true, maxScore: true },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
@@ -41,6 +91,21 @@ export async function getStudentContentDetail(studentId: string, contentId: stri
         orderBy: { id: "asc" },
       },
       section: { select: { id: true, name: true } },
+      activity: {
+        select: {
+          id: true,
+          title: true,
+          type: true,
+          dueDate: true,
+          availableFrom: true,
+          availableTo: true,
+          totalPoints: true,
+          submissions: {
+            where: { studentId },
+            select: { status: true, score: true, maxScore: true },
+          },
+        },
+      },
     },
   });
 
@@ -91,6 +156,8 @@ export async function startContentAttempt(studentId: string, contentId: string) 
       status: "ACTIVE",
     },
   });
+
+  await upsertActivitySubmission(studentId, content.sectionId, contentId, "IN_PROGRESS");
 
   return attempt;
 }
@@ -161,6 +228,8 @@ export async function submitContentAttempt(studentId: string, contentId: string)
       maxScore,
     },
   });
+
+  await upsertActivitySubmission(studentId, attempt.sectionId, contentId, "COMPLETED", score, maxScore);
 
   const allAnswers = await prisma.contentAnswer.findMany({
     where: { attemptId: attempt.id },

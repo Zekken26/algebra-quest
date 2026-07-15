@@ -1,12 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
-import { ArrowLeft, BookCheck, BookOpenText, CheckCircle2, FileQuestion, Loader2, Lock, Play, Swords, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ArrowLeft, BookOpenText, CheckCircle2, Clock, FileText, Loader2, Lock, Play, Trophy } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ForestBackground } from "@/components/ForestBackground";
 import { StudentNavbar } from "@/features/student/components/StudentNavbar";
 import {
   fetchStudentClass,
-  fetchStudentClassContent,
+  fetchStudentClassActivities,
   fetchStudentClassLeaderboard,
   fetchStudentClassProgress,
   fetchStudentClassQuestGuides,
@@ -14,11 +14,11 @@ import {
   fetchStudentDashboard,
   getStudentProgress,
   toStudentProgressFromDashboard,
+  type StudentActivityItem,
   type StudentAssignedQuest,
   type StudentClass,
   type StudentClassLeaderboardRow,
   type StudentClassProgress,
-  type StudentContentItem,
   type StudentQuestGuide,
 } from "@/features/student/services/studentService";
 import type { StudentProgress } from "@/features/student/types/student.types";
@@ -35,12 +35,12 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
   const [quests, setQuests] = useState<StudentAssignedQuest[]>([]);
   const [classProgress, setClassProgress] = useState<StudentClassProgress | null>(null);
   const [leaderboard, setLeaderboard] = useState<StudentClassLeaderboardRow[]>([]);
-  const [contentItems, setContentItems] = useState<StudentContentItem[]>([]);
-  const [loadingContent, setLoadingContent] = useState(false);
+  const [activities, setActivities] = useState<StudentActivityItem[]>([]);
+  const [activeSection, setActiveSection] = useState<"assignments" | "pretests" | "assessments">("assignments");
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
-    const [nextClass, nextGuides, nextQuests, nextProgress, nextLeaderboard, dashboard, nextContent] =
+    const [nextClass, nextGuides, nextQuests, nextProgress, nextLeaderboard, dashboard, nextActivities] =
       await Promise.all([
         fetchStudentClass(classId),
         fetchStudentClassQuestGuides(classId),
@@ -48,7 +48,7 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
         fetchStudentClassProgress(classId),
         fetchStudentClassLeaderboard(classId),
         fetchStudentDashboard(),
-        fetchStudentClassContent(classId),
+        fetchStudentClassActivities(classId),
       ]);
     setProgress(toStudentProgressFromDashboard(dashboard, progress));
     setClassInfo(nextClass);
@@ -56,7 +56,7 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
     setQuests(nextQuests);
     setClassProgress(nextProgress);
     setLeaderboard(nextLeaderboard);
-    setContentItems(nextContent.content ?? []);
+    setActivities(nextActivities.activities ?? []);
   };
 
   useEffect(() => {
@@ -98,9 +98,10 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
                   `Quests, guides, progress, and rankings for ${classInfo?.teacher?.name ?? "this teacher"}.`}
               </p>
             </div>
-            <div className="grid grid-cols-3 gap-3 text-sm">
+            <div className="grid grid-cols-4 gap-3 text-sm">
               <Stat label="Guides" value={String(guides.length)} />
               <Stat label="Quests" value={String(quests.length)} />
+              <Stat label="Activities" value={String(activities.length)} />
               <Stat label="Done" value={String(classProgress?.summary.completedQuests ?? 0)} />
             </div>
           </div>
@@ -319,67 +320,146 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
               </div>
             </section>
 
-            {contentItems.length > 0 ? (
+            {activities.length > 0 ? (
               <section className="mb-8">
                 <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
                   <div>
                     <p className="font-display text-sm uppercase tracking-[0.24em] text-accent">
                       Classwork
                     </p>
-                    <h2 className="font-display text-3xl text-primary">Assignments &amp; Tests</h2>
+                    <h2 className="font-display text-3xl text-primary">Activities</h2>
                   </div>
                 </div>
+
+                <div className="mb-4 flex flex-wrap gap-1">
+                  {[
+                    { id: "assignments" as const, label: "Assignments", icon: FileText },
+                    { id: "pretests" as const, label: "Pre-Tests", icon: BookOpenText },
+                    { id: "assessments" as const, label: "Assessments", icon: Trophy },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                        activeSection === tab.id
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-black/20 text-stone-foreground/70 hover:bg-black/30"
+                      }`}
+                      onClick={() => setActiveSection(tab.id)}
+                    >
+                      <tab.icon className="mr-1.5 inline h-3.5 w-3.5" />
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                  {contentItems.map((item) => {
-                    const attempt = item.attempts?.find((a) => a.submittedAt);
-                    const completed = !!attempt;
-                    return (
-                      <Link
-                        key={item.id}
-                        to="/student/content/$contentId"
-                        params={{ contentId: item.id }}
-                        className="quest-panel p-4 transition-colors hover:border-primary/30"
-                      >
-                        <div className="flex items-start gap-3">
-                          <div className="rounded-lg bg-black/30 p-2">
-                            {item.type === "ASSIGNMENT" ? (
-                              <BookCheck className="h-5 w-5 text-primary" />
-                            ) : item.type === "PRETEST" ? (
-                              <FileQuestion className="h-5 w-5 text-primary" />
-                            ) : (
-                              <Swords className="h-5 w-5 text-primary" />
-                            )}
+                  {activities
+                    .filter((a) => {
+                      if (activeSection === "assignments") return a.type === "ASSIGNMENT";
+                      if (activeSection === "pretests") return a.type === "PRE_TEST";
+                      if (activeSection === "assessments") return a.type === "ASSESSMENT";
+                      return false;
+                    })
+                    .map((activity) => {
+                      const sub = activity.submissions?.[0];
+                      const status = sub?.status ?? "NOT_STARTED";
+                      const score = sub?.score;
+                      const maxScore = sub?.maxScore;
+                      const dueDate = activity.dueDate ? new Date(activity.dueDate) : null;
+                      const isOverdue = dueDate && dueDate < new Date() && status !== "COMPLETED" && status !== "SUBMITTED";
+                      const displayStatus = isOverdue ? "OVERDUE" : status;
+
+                      const statusConfig: Record<string, { label: string; color: string }> = {
+                        NOT_STARTED: { label: "Not Started", color: "text-stone-400 bg-stone-500/10" },
+                        IN_PROGRESS: { label: "In Progress", color: "text-accent bg-accent/10" },
+                        SUBMITTED: { label: "Submitted", color: "text-blue-400 bg-blue-500/10" },
+                        COMPLETED: { label: "Completed", color: "text-success bg-success/10" },
+                        OVERDUE: { label: "Overdue", color: "text-destructive bg-destructive/10" },
+                        GRADED: { label: "Graded", color: "text-primary bg-primary/10" },
+                      };
+                      const statusInfo = statusConfig[displayStatus] ?? statusConfig.NOT_STARTED;
+
+                      const activityLink = activity.content?.id
+                        ? `/student/content/${activity.content.id}`
+                        : null;
+
+                      if (!activityLink) return null;
+
+                      return (
+                        <Link
+                          key={activity.id}
+                          to={activityLink}
+                          className="quest-panel p-4 transition-colors hover:border-primary/30"
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className="rounded-lg bg-black/30 p-2">
+                              {activity.type === "ASSIGNMENT" ? (
+                                <FileText className="h-5 w-5 text-primary" />
+                              ) : activity.type === "PRE_TEST" ? (
+                                <BookOpenText className="h-5 w-5 text-primary" />
+                              ) : (
+                                <Trophy className="h-5 w-5 text-primary" />
+                              )}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <h3 className="font-display text-lg text-primary truncate">
+                                {activity.title}
+                              </h3>
+                              <p className="mt-0.5 flex items-center gap-2 text-xs text-stone-foreground/60">
+                                <span>
+                                  {activity.type === "ASSIGNMENT"
+                                    ? "Assignment"
+                                    : activity.type === "PRE_TEST"
+                                      ? "Pre-Test"
+                                      : "Assessment"}
+                                </span>
+                                {activity.content?._count?.questions ? (
+                                  <>
+                                    <span>&bull;</span>
+                                    <span>{activity.content._count.questions} question{activity.content._count.questions !== 1 ? "s" : ""}</span>
+                                  </>
+                                ) : null}
+                                {activity.dueDate ? (
+                                  <>
+                                    <span>&bull;</span>
+                                    <span className={isOverdue ? "text-destructive" : ""}>
+                                      Due {new Date(activity.dueDate).toLocaleDateString()}
+                                    </span>
+                                  </>
+                                ) : null}
+                              </p>
+                            </div>
                           </div>
-                          <div className="min-w-0 flex-1">
-                            <h3 className="font-display text-lg text-primary truncate">
-                              {item.title}
-                            </h3>
-                            <p className="mt-0.5 flex items-center gap-2 text-xs text-stone-foreground/60">
-                              <span>
-                                {item.type === "ASSIGNMENT"
-                                  ? "Assignment"
-                                  : item.type === "PRETEST"
-                                    ? "Pre-Test"
-                                    : "Assessment"}
+
+                          <div className="mt-3 flex items-center justify-between">
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${statusInfo.color}`}>
+                              {isOverdue ? "Overdue" : statusInfo.label}
+                              {score !== null && score !== undefined ? (
+                                <span className="ml-1">- {score}/{maxScore ?? "?"}</span>
+                              ) : null}
+                            </span>
+                            {status === "NOT_STARTED" ? (
+                              <span className="text-xs text-stone-foreground/50">
+                                <Play className="mr-1 inline h-3.5 w-3.5" /> Start
                               </span>
-                              <span>&bull;</span>
-                              <span>{item.questions.length} question{item.questions.length !== 1 ? "s" : ""}</span>
-                            </p>
+                            ) : status === "IN_PROGRESS" ? (
+                              <span className="text-xs text-accent">
+                                <Clock className="mr-1 inline h-3.5 w-3.5" /> Continue
+                              </span>
+                            ) : status === "COMPLETED" || status === "GRADED" || status === "SUBMITTED" ? (
+                              <span className="text-xs text-success">
+                                <CheckCircle2 className="mr-1 inline h-3.5 w-3.5" /> View Results
+                              </span>
+                            ) : null}
                           </div>
-                        </div>
-                        {attempt ? (
-                          <p className="mt-3 flex items-center gap-1.5 text-sm text-success">
-                            <CheckCircle2 className="h-4 w-4" />
-                            Score: {attempt.score}/{attempt.totalScore}
-                          </p>
-                        ) : item.attempts?.some((a) => !a.submittedAt) ? (
-                          <p className="mt-3 flex items-center gap-1.5 text-sm text-accent">
-                            <Play className="h-4 w-4" /> In progress
-                          </p>
-                        ) : null}
-                      </Link>
-                    );
-                  })}
+
+                          {activity.description ? (
+                            <p className="mt-2 text-xs text-stone-foreground/60 line-clamp-1">{activity.description}</p>
+                          ) : null}
+                        </Link>
+                      );
+                    })}
                 </div>
               </section>
             ) : null}

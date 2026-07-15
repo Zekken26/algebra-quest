@@ -44,3 +44,13 @@ export const getContentDetail = asyncHandler(async (req, res) => {
 
   res.status(200).json({ success: true, data: { content } });
 });
+
+export const togglePublishContent = asyncHandler(async (req, res) => {
+  const { contentId } = contentIdParamsSchema.parse(req.params);
+  const content = await contentService.getContentDetail(req.user!.sub, contentId);
+  const updated = await contentService.updateContent(req.user!.sub, contentId, {
+    isPublished: !content.isPublished,
+  });
+
+  res.status(200).json({ success: true, data: { content: updated } });
+});

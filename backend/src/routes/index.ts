@@ -7,6 +7,7 @@ import { questRouter, studentQuestRouter } from "../modules/quests/quest.routes"
 import { shopRouter } from "../modules/shop/shop.routes";
 import { teacherRouter } from "../modules/teacher/teacher.routes";
 import { userRouter } from "../modules/users/user.routes";
+import { teacherActivityRouter, studentActivityRouter } from "../modules/activities/activity.routes";
 
 export const apiRouter = Router();
 
@@ -20,3 +21,5 @@ apiRouter.use("/student", userRouter);
 apiRouter.use("/student/shop", shopRouter);
 apiRouter.use("/student/quest-guides", studentQuestGuideRouter);
 apiRouter.use("/student/quests", studentQuestRouter);
+apiRouter.use("/teacher/activities", teacherActivityRouter);
+apiRouter.use("/student/activities", studentActivityRouter);

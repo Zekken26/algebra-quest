@@ -71,7 +71,11 @@ export type DashboardStats = {
   recentActivity: TeacherActivity[];
 };
 
+export type ActivityType = "QUEST" | "ASSIGNMENT" | "PRE_TEST" | "ASSESSMENT";
+
 export type ClassContentType = "ASSIGNMENT" | "PRETEST" | "ASSESSMENT";
+
+export type SubmissionStatus = "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED" | "COMPLETED" | "OVERDUE" | "GRADED";
 
 export type ClassContentQuestion = {
   id: string;
@@ -88,7 +92,12 @@ export type ClassContentItem = {
   id: string;
   title: string;
   type: ClassContentType;
+  description: string | null;
   instructions: string | null;
+  dueDate: string | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  submissionType: string | null;
   timeLimitMinutes: number | null;
   maxScore: number | null;
   isPublished: boolean;
@@ -98,6 +107,41 @@ export type ClassContentItem = {
   updatedAt: string;
   questions: ClassContentQuestion[];
   _count?: { questions: number; attempts: number };
+};
+
+export type ActivityQuestRef = {
+  id: string;
+  title: string;
+  worldName: string;
+  topic: string;
+  difficulty: string;
+  levelNumber: number;
+  isPublished: boolean;
+  _count?: { questions: number; progress: number };
+};
+
+export type ActivityContentRef = ClassContentItem;
+
+export type ActivityItem = {
+  id: string;
+  type: ActivityType;
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  totalPoints: number | null;
+  isPublished: boolean;
+  orderIndex: number;
+  teacherId: string;
+  sectionId: string;
+  questId: string | null;
+  contentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+  quest: ActivityQuestRef | null;
+  content: ActivityContentRef | null;
+  _count: { submissions: number };
 };
 
 export type AnalyticsPoint = {

@@ -971,7 +971,12 @@ export type StudentContentItem = {
   id: string;
   title: string;
   type: "ASSIGNMENT" | "PRETEST" | "ASSESSMENT";
+  description: string | null;
   instructions: string | null;
+  dueDate: string | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  submissionType: string | null;
   timeLimitMinutes: number | null;
   maxScore: number | null;
   sectionId: string;
@@ -998,6 +1003,56 @@ export type StudentContentItem = {
       isCorrect: boolean;
       questionId: string;
     }>;
+  }>;
+  activity?: {
+    id: string;
+    type: string;
+    dueDate: string | null;
+    availableFrom: string | null;
+    availableTo: string | null;
+    totalPoints: number | null;
+    submissions: Array<{
+      status: string;
+      score: number | null;
+      maxScore: number | null;
+    }>;
+  } | null;
+};
+
+export type StudentActivityItem = {
+  id: string;
+  type: "QUEST" | "ASSIGNMENT" | "PRE_TEST" | "ASSESSMENT";
+  title: string;
+  description: string | null;
+  dueDate: string | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  totalPoints: number | null;
+  isPublished: boolean;
+  sectionId: string;
+  quest: {
+    id: string;
+    title: string;
+    worldName: string;
+    topic: string;
+    difficulty: string;
+    levelNumber: number;
+    requiredPuzzlePieces: number;
+  } | null;
+  content: {
+    id: string;
+    title: string;
+    type: string;
+    _count: { questions: number };
+  } | null;
+  submissions: Array<{
+    id: string;
+    status: string;
+    score: number | null;
+    maxScore: number | null;
+    submittedAt: string | null;
+    startedAt: string | null;
+    gradedAt: string | null;
   }>;
 };
 
@@ -1043,5 +1098,18 @@ export async function submitStudentContentAttempt(contentId: string) {
 export async function fetchStudentContentAttempts(contentId: string) {
   return apiRequest<{ attempts: StudentContentItem["attempts"] }>(
     `/user/content/${contentId}/attempts`,
+  );
+}
+
+export async function fetchStudentClassActivities(classId: string, type?: string) {
+  const params = type ? `?type=${type}` : "";
+  return apiRequest<{ activities: StudentActivityItem[] }>(
+    `/student/activities/classes/${classId}/activities${params}`,
+  );
+}
+
+export async function fetchStudentActivityDetail(activityId: string) {
+  return apiRequest<{ activity: StudentActivityItem }>(
+    `/student/activities/${activityId}`,
   );
 }

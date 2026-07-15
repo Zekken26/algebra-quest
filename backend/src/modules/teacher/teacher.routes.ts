@@ -69,4 +69,5 @@ teacherRouter.post("/content", contentController.createClassContent);
 teacherRouter.get("/sections/:sectionId/content", contentController.getClassContent);
 teacherRouter.get("/content/:contentId", contentController.getContentDetail);
 teacherRouter.put("/content/:contentId", contentController.updateClassContent);
+teacherRouter.post("/content/:contentId/toggle-publish", contentController.togglePublishContent);
 teacherRouter.delete("/content/:contentId", contentController.deleteClassContent);
