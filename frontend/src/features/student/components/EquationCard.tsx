@@ -17,6 +17,12 @@ function getQuestImageUrl(url?: string | null) {
   return `${baseUrl}${url}`;
 }
 
+function isMathExpression(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) return false;
+  return /[=\\]/.test(trimmed) || /^[\d+\-*/^()xXa-zA-Z\s]+$/.test(trimmed);
+}
+
 export function EquationCard({ moduleTitle, question }: EquationCardProps) {
   return (
     <motion.div
@@ -43,11 +49,17 @@ export function EquationCard({ moduleTitle, question }: EquationCardProps) {
           </div>
         ) : null}
         {question.prompt ? (
-        <MathRenderer
-          latex={question.prompt}
-          displayMode
-          className="relative text-2xl text-primary glow-text sm:text-4xl"
-        />
+          isMathExpression(question.prompt) ? (
+            <MathRenderer
+              latex={question.prompt}
+              displayMode
+              className="relative text-2xl text-primary glow-text sm:text-4xl"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center px-6 py-4 text-center text-2xl text-primary glow-text sm:text-3xl leading-relaxed whitespace-normal break-words overflow-wrap-break-word text-wrap">
+              {question.prompt}
+            </div>
+          )
         ) : null}
       </div>
     </motion.div>

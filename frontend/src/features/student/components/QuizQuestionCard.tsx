@@ -36,13 +36,13 @@ export function QuizQuestionCard({
         </div>
       </div>
 
-      <div className="panel-parchment p-6 text-center">
-        <MathRenderer
-          latex={question.prompt}
-          displayMode
-          className="text-4xl text-parchment-foreground sm:text-6xl"
-        />
-      </div>
+<div className="panel-parchment p-6 text-center whitespace-normal break-words leading-relaxed">
+  <MathRenderer
+    latex={question.prompt}
+    displayMode
+    className="text-4xl text-parchment-foreground sm:text-6xl"
+  />
+</div>
 
       <div className="mt-5 grid gap-3 sm:grid-cols-2">
         {question.choices.map((choice) => (

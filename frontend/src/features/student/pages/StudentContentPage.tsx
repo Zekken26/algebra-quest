@@ -252,9 +252,9 @@ export function StudentContentPage({ contentId }: Props) {
                     className="mb-4 w-full rounded-xl"
                   />
                 ) : null}
-                <p className="mb-6 text-center font-display text-2xl text-primary">
-                  {currentQuestion.equation}
-                </p>
+<p className="mb-6 text-center font-display text-2xl text-primary whitespace-normal break-words leading-relaxed">
+  {currentQuestion.equation}
+</p>
 
                 <div className="grid gap-3">
                   {currentQuestion.choices.map((choice) => {
