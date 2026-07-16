@@ -37,6 +37,7 @@ let musicDelay: DelayNode | null = null;
 let musicFeedback: GainNode | null = null;
 let musicNodes: OscillatorNode[] = [];
 let arpeggioTimer: number | null = null;
+let pulseTimer: number | null = null;
 let arpeggioStep = 0;
 let musicStarting = false;
 
@@ -122,7 +123,7 @@ export function startBackgroundMusic() {
 
   /* ── Master bus ── */
   musicGain = context.createGain();
-  musicGain.gain.setValueAtTime(0.35, context.currentTime);
+  musicGain.gain.setValueAtTime(0.3, context.currentTime);
 
   /* ── Simple delay for spatial depth ── */
   musicDelay = context.createDelay(1);
@@ -137,12 +138,12 @@ export function startBackgroundMusic() {
   musicGain.connect(musicDelay);
   musicGain.connect(context.destination);
 
-  /* ── Drone: low sine waves (very quiet, creates ambient foundation) ── */
-  createTone(context, 55, 0, "sine", 0.02, 2);
-  createTone(context, 110, -1.5, "sine", 0.015, 2);
-  createTone(context, 110, 1.5, "sine", 0.015, 2);
+  /* ── Drone: low sine waves in D (very quiet, earthy foundation) ── */
+  createTone(context, 36.71, 0, "sine", 0.015, 2);
+  createTone(context, 73.42, -1.5, "sine", 0.012, 2);
+  createTone(context, 73.42, 1.5, "sine", 0.012, 2);
 
-  /* ── Pad: Am chord (A3 C4 E4) with LFO for slow breathing ── */
+  /* ── Pad: D Dorian (Dm7) with LFO for slow breathing ── */
   const ctx = context;
 
   function createPad(freq: number, detune: number, gainAmt: number, lfoRate: number) {
@@ -169,25 +170,26 @@ export function startBackgroundMusic() {
     musicNodes.push(osc);
   }
 
-  createPad(220, -2, 0.01, 0.07);
-  createPad(262, 1, 0.008, 0.09);
-  createPad(330, -1, 0.008, 0.06);
+  createPad(146.83, -2, 0.012, 0.08);
+  createPad(174.61, 1, 0.01, 0.06);
+  createPad(220, -1, 0.01, 0.07);
+  createPad(261.63, 2, 0.008, 0.09);
 
-  /* ── Arpeggio: slow pentatonic pattern ── */
-  const pentatonic = [220, 262, 294, 330, 392, 440];
+  /* ── Arpeggio: D Dorian quest motif (up-down) ── */
+  const dorianNotes = [293.66, 349.23, 392, 440, 523.25, 587.33, 440, 392, 349.23];
 
   function playArpeggio() {
     if (!musicGain) return;
-    const freq = pentatonic[arpeggioStep % pentatonic.length];
+    const freq = dorianNotes[arpeggioStep % dorianNotes.length];
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
-    const duration = 0.35;
+    const duration = 0.3;
 
     osc.type = "triangle";
     osc.frequency.setValueAtTime(freq, ctx.currentTime);
 
     g.gain.setValueAtTime(0.0001, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.012, ctx.currentTime + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.018, ctx.currentTime + 0.03);
     g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
 
     osc.connect(g);
@@ -199,13 +201,37 @@ export function startBackgroundMusic() {
   }
 
   playArpeggio();
-  arpeggioTimer = window.setInterval(playArpeggio, 1800);
+  arpeggioTimer = window.setInterval(playArpeggio, 800);
+
+  /* ── Low rhythmic pulse (gentle 100 BPM heartbeat drive) ── */
+  function playPulse() {
+    if (!musicGain) return;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(60, ctx.currentTime);
+    g.gain.setValueAtTime(0.0001, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.005, ctx.currentTime + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.15);
+    osc.connect(g);
+    g.connect(musicGain!);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.2);
+  }
+
+  playPulse();
+  pulseTimer = window.setInterval(playPulse, 600);
 }
 
 export function stopBackgroundMusic() {
   if (arpeggioTimer !== null) {
     window.clearInterval(arpeggioTimer);
     arpeggioTimer = null;
+  }
+
+  if (pulseTimer !== null) {
+    window.clearInterval(pulseTimer);
+    pulseTimer = null;
   }
 
   const now = audioContext?.currentTime ?? 0;
