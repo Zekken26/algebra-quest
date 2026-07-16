@@ -73,6 +73,10 @@ export type DashboardStats = {
 
 export type ActivityType = "QUEST" | "ASSIGNMENT" | "PRE_TEST" | "ASSESSMENT";
 
+export type QuestionType = "MULTIPLE_CHOICE" | "TRUE_FALSE" | "IDENTIFICATION" | "MATCHING" | "ENUMERATION" | "SHORT_ANSWER" | "ESSAY";
+
+export type SubmissionType = "FILE_UPLOAD" | "ESSAY" | "SHORT_ANSWER" | "MULTIPLE_CHOICE" | "ATTACHMENTS";
+
 export type ClassContentType = "ASSIGNMENT" | "PRETEST" | "ASSESSMENT";
 
 export type SubmissionStatus = "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED" | "COMPLETED" | "OVERDUE" | "GRADED";
@@ -80,12 +84,16 @@ export type SubmissionStatus = "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED" | "CO
 export type ClassContentQuestion = {
   id: string;
   equation: string;
+  questionType: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "IDENTIFICATION" | "MATCHING" | "ENUMERATION" | "SHORT_ANSWER" | "ESSAY";
   choices: string[];
   correctAnswer: string;
   explanation: string;
   points: number;
   difficulty: string;
   imageUrl?: string | null;
+  matchingPairs?: Array<{ left: string; right: string }> | null;
+  enumerationItems?: string[];
+  isCorrect?: boolean | null;
 };
 
 export type ClassContentItem = {
@@ -98,9 +106,17 @@ export type ClassContentItem = {
   availableFrom: string | null;
   availableTo: string | null;
   submissionType: string | null;
+  submissionTypes?: string[];
   timeLimitMinutes: number | null;
   maxScore: number | null;
   isPublished: boolean;
+  passingScore?: number | null;
+  shuffleQuestions?: boolean;
+  shuffleChoices?: boolean;
+  attemptsAllowed?: number;
+  showScoreImmediately?: boolean;
+  randomQuestions?: number | null;
+  autoGrade?: boolean;
   teacherId: string;
   sectionId: string;
   createdAt: string;

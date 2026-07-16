@@ -782,3 +782,288 @@ export async function togglePublishContent(contentId: string) {
     { method: "POST" },
   );
 }
+
+export type AssignmentItem = ClassContentItem & {
+  submissionType?: string | null;
+  passingScore?: number | null;
+};
+
+export type PreTestItem = ClassContentItem & {
+  timeLimitMinutes?: number | null;
+  passingScore?: number | null;
+  shuffleQuestions?: boolean;
+  shuffleChoices?: boolean;
+  attemptsAllowed?: number;
+  showScoreImmediately?: boolean;
+  randomQuestions?: number | null;
+};
+
+export type AssessmentItem = ClassContentItem & {
+  timeLimitMinutes?: number | null;
+  passingScore?: number | null;
+  attemptsAllowed?: number;
+  autoGrade?: boolean;
+  shuffleQuestions?: boolean;
+  shuffleChoices?: boolean;
+};
+
+export async function fetchAssignments(sectionId?: string) {
+  const params = sectionId ? `?sectionId=${encodeURIComponent(sectionId)}` : "";
+  const data = await apiRequest<{ assignments: AssignmentItem[] }>(`/assignments${params}`);
+  return data.assignments;
+}
+
+export async function createAssignment(input: {
+  title: string;
+  description?: string | null;
+  instructions?: string | null;
+  dueDate?: string | null;
+  availableFrom?: string | null;
+  availableTo?: string | null;
+  totalPoints?: number | null;
+  submissionType?: string;
+  passingScore?: number | null;
+  isPublished?: boolean;
+  sectionId?: string | null;
+  classId?: string | null;
+  questions?: Array<{
+    equation: string;
+    questionType?: string;
+    choices: string[];
+    correctAnswer: string;
+    explanation: string;
+    points?: number;
+  }>;
+}) {
+  const data = await apiRequest<{ assignment: AssignmentItem }>("/assignments", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return data.assignment;
+}
+
+export async function updateAssignment(
+  assignmentId: string,
+  input: Partial<{
+    title: string;
+    description: string | null;
+    instructions: string | null;
+    dueDate: string | null;
+    availableFrom: string | null;
+    availableTo: string | null;
+    totalPoints: number | null;
+    submissionType: string;
+    passingScore: number | null;
+    isPublished: boolean;
+    questions: Array<{
+      equation: string;
+      questionType?: string;
+      choices: string[];
+      correctAnswer: string;
+      explanation: string;
+      points?: number;
+    }>;
+  }>,
+) {
+  const data = await apiRequest<{ assignment: AssignmentItem }>(`/assignments/${assignmentId}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+  return data.assignment;
+}
+
+export async function deleteAssignment(assignmentId: string) {
+  await apiRequest<void>(`/assignments/${assignmentId}`, { method: "DELETE" });
+}
+
+export async function togglePublishAssignment(assignmentId: string) {
+  const data = await apiRequest<{ assignment: AssignmentItem }>(
+    `/assignments/${assignmentId}/toggle-publish`,
+    { method: "POST" },
+  );
+  return data.assignment;
+}
+
+export async function duplicateAssignment(assignmentId: string) {
+  const data = await apiRequest<{ assignment: AssignmentItem }>(
+    `/assignments/${assignmentId}/duplicate`,
+    { method: "POST" },
+  );
+  return data.assignment;
+}
+
+export async function fetchPreTests(sectionId?: string) {
+  const params = sectionId ? `?sectionId=${encodeURIComponent(sectionId)}` : "";
+  const data = await apiRequest<{ preTests: PreTestItem[] }>(`/pretests${params}`);
+  return data.preTests;
+}
+
+export async function createPreTest(input: {
+  title: string;
+  description?: string | null;
+  instructions?: string | null;
+  dueDate?: string | null;
+  availableFrom?: string | null;
+  availableTo?: string | null;
+  totalPoints?: number | null;
+  timeLimitMinutes?: number | null;
+  passingScore?: number | null;
+  shuffleQuestions?: boolean;
+  shuffleChoices?: boolean;
+  attemptsAllowed?: number;
+  showScoreImmediately?: boolean;
+  randomQuestions?: number | null;
+  isPublished?: boolean;
+  sectionId?: string | null;
+  classId?: string | null;
+  questions?: Array<{
+    equation: string;
+    questionType?: string;
+    choices: string[];
+    correctAnswer: string;
+    explanation: string;
+    points?: number;
+    matchingPairs?: Array<{ left: string; right: string }> | null;
+    enumerationItems?: string[];
+  }>;
+}) {
+  const data = await apiRequest<{ preTest: PreTestItem }>("/pretests", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return data.preTest;
+}
+
+export async function updatePreTest(
+  preTestId: string,
+  input: Partial<{
+    title: string;
+    description: string | null;
+    instructions: string | null;
+    dueDate: string | null;
+    availableFrom: string | null;
+    availableTo: string | null;
+    totalPoints: number | null;
+    timeLimitMinutes: number | null;
+    passingScore: number | null;
+    shuffleQuestions: boolean;
+    shuffleChoices: boolean;
+    attemptsAllowed: number;
+    showScoreImmediately: boolean;
+    randomQuestions: number | null;
+    isPublished: boolean;
+    questions: Array<{
+      equation: string;
+      questionType?: string;
+      choices: string[];
+      correctAnswer: string;
+      explanation: string;
+      points?: number;
+      matchingPairs?: Array<{ left: string; right: string }> | null;
+      enumerationItems?: string[];
+    }>;
+  }>,
+) {
+  const data = await apiRequest<{ preTest: PreTestItem }>(`/pretests/${preTestId}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+  return data.preTest;
+}
+
+export async function deletePreTest(preTestId: string) {
+  await apiRequest<void>(`/pretests/${preTestId}`, { method: "DELETE" });
+}
+
+export async function togglePublishPreTest(preTestId: string) {
+  const data = await apiRequest<{ preTest: PreTestItem }>(
+    `/pretests/${preTestId}/toggle-publish`,
+    { method: "POST" },
+  );
+  return data.preTest;
+}
+
+export async function fetchAssessments(sectionId?: string) {
+  const params = sectionId ? `?sectionId=${encodeURIComponent(sectionId)}` : "";
+  const data = await apiRequest<{ assessments: AssessmentItem[] }>(`/assessments${params}`);
+  return data.assessments;
+}
+
+export async function createAssessment(input: {
+  title: string;
+  description?: string | null;
+  instructions?: string | null;
+  dueDate?: string | null;
+  availableFrom?: string | null;
+  availableTo?: string | null;
+  totalPoints?: number | null;
+  timeLimitMinutes?: number | null;
+  passingScore?: number | null;
+  attemptsAllowed?: number;
+  autoGrade?: boolean;
+  shuffleQuestions?: boolean;
+  shuffleChoices?: boolean;
+  isPublished?: boolean;
+  sectionId?: string | null;
+  classId?: string | null;
+  questions?: Array<{
+    equation: string;
+    questionType?: string;
+    choices: string[];
+    correctAnswer: string;
+    explanation: string;
+    points?: number;
+  }>;
+}) {
+  const data = await apiRequest<{ assessment: AssessmentItem }>("/assessments", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
+  return data.assessment;
+}
+
+export async function updateAssessment(
+  assessmentId: string,
+  input: Partial<{
+    title: string;
+    description: string | null;
+    instructions: string | null;
+    dueDate: string | null;
+    availableFrom: string | null;
+    availableTo: string | null;
+    totalPoints: number | null;
+    timeLimitMinutes: number | null;
+    passingScore: number | null;
+    attemptsAllowed: number;
+    autoGrade: boolean;
+    shuffleQuestions: boolean;
+    shuffleChoices: boolean;
+    isPublished: boolean;
+    questions: Array<{
+      equation: string;
+      questionType?: string;
+      choices: string[];
+      correctAnswer: string;
+      explanation: string;
+      points?: number;
+    }>;
+  }>,
+) {
+  const data = await apiRequest<{ assessment: AssessmentItem }>(`/assessments/${assessmentId}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
+  return data.assessment;
+}
+
+export async function deleteAssessment(assessmentId: string) {
+  await apiRequest<void>(`/assessments/${assessmentId}`, { method: "DELETE" });
+}
+
+export async function togglePublishAssessment(assessmentId: string) {
+  const data = await apiRequest<{ assessment: AssessmentItem }>(
+    `/assessments/${assessmentId}/toggle-publish`,
+    { method: "POST" },
+  );
+  return data.assessment;
+}

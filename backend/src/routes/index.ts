@@ -8,6 +8,9 @@ import { shopRouter } from "../modules/shop/shop.routes";
 import { teacherRouter } from "../modules/teacher/teacher.routes";
 import { userRouter } from "../modules/users/user.routes";
 import { teacherActivityRouter, studentActivityRouter } from "../modules/activities/activity.routes";
+import { assignmentRouter } from "../modules/assignments/assignment.routes";
+import { preTestRouter } from "../modules/pretests/preTest.routes";
+import { assessmentRouter } from "../modules/assessments/assessment.routes";
 
 export const apiRouter = Router();
 
@@ -23,3 +26,6 @@ apiRouter.use("/student/quest-guides", studentQuestGuideRouter);
 apiRouter.use("/student/quests", studentQuestRouter);
 apiRouter.use("/teacher/activities", teacherActivityRouter);
 apiRouter.use("/student/activities", studentActivityRouter);
+apiRouter.use("/assignments", assignmentRouter);
+apiRouter.use("/pretests", preTestRouter);
+apiRouter.use("/assessments", assessmentRouter);

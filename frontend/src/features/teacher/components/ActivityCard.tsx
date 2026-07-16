@@ -1,4 +1,4 @@
-import { BookCheck, BookOpen, Eye, EyeOff, FileText, Pencil, Swords, Trash2, Trophy } from "lucide-react";
+﻿import { BookCheck, BookOpen, Eye, EyeOff, FileText, Pencil, Swords, Trash2, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import type { ActivityItem } from "@/features/teacher/types/teacher.types";
 

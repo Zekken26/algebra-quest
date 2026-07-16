@@ -17,10 +17,13 @@ import { Route as TeacherIndexRouteImport } from './routes/teacher.index'
 import { Route as StudentIndexRouteImport } from './routes/student.index'
 import { Route as TeacherSettingsRouteImport } from './routes/teacher.settings'
 import { Route as TeacherProfileRouteImport } from './routes/teacher.profile'
+import { Route as TeacherPretestsRouteImport } from './routes/teacher.pretests'
 import { Route as TeacherModulesRouteImport } from './routes/teacher.modules'
 import { Route as TeacherLeaderboardRouteImport } from './routes/teacher.leaderboard'
 import { Route as TeacherDashboardRouteImport } from './routes/teacher.dashboard'
 import { Route as TeacherClassesRouteImport } from './routes/teacher.classes'
+import { Route as TeacherAssignmentsRouteImport } from './routes/teacher.assignments'
+import { Route as TeacherAssessmentsRouteImport } from './routes/teacher.assessments'
 import { Route as TeacherAnalyticsRouteImport } from './routes/teacher.analytics'
 import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentJoinClassRouteImport } from './routes/student.join-class'
@@ -76,6 +79,11 @@ const TeacherProfileRoute = TeacherProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => TeacherRoute,
 } as any)
+const TeacherPretestsRoute = TeacherPretestsRouteImport.update({
+  id: '/pretests',
+  path: '/pretests',
+  getParentRoute: () => TeacherRoute,
+} as any)
 const TeacherModulesRoute = TeacherModulesRouteImport.update({
   id: '/modules',
   path: '/modules',
@@ -94,6 +102,16 @@ const TeacherDashboardRoute = TeacherDashboardRouteImport.update({
 const TeacherClassesRoute = TeacherClassesRouteImport.update({
   id: '/classes',
   path: '/classes',
+  getParentRoute: () => TeacherRoute,
+} as any)
+const TeacherAssignmentsRoute = TeacherAssignmentsRouteImport.update({
+  id: '/assignments',
+  path: '/assignments',
+  getParentRoute: () => TeacherRoute,
+} as any)
+const TeacherAssessmentsRoute = TeacherAssessmentsRouteImport.update({
+  id: '/assessments',
+  path: '/assessments',
   getParentRoute: () => TeacherRoute,
 } as any)
 const TeacherAnalyticsRoute = TeacherAnalyticsRouteImport.update({
@@ -181,10 +199,13 @@ export interface FileRoutesByFullPath {
   '/student/join-class': typeof StudentJoinClassRoute
   '/student/progress': typeof StudentProgressRoute
   '/teacher/analytics': typeof TeacherAnalyticsRoute
+  '/teacher/assessments': typeof TeacherAssessmentsRoute
+  '/teacher/assignments': typeof TeacherAssignmentsRoute
   '/teacher/classes': typeof TeacherClassesRoute
   '/teacher/dashboard': typeof TeacherDashboardRoute
   '/teacher/leaderboard': typeof TeacherLeaderboardRoute
   '/teacher/modules': typeof TeacherModulesRoute
+  '/teacher/pretests': typeof TeacherPretestsRoute
   '/teacher/profile': typeof TeacherProfileRoute
   '/teacher/settings': typeof TeacherSettingsRoute
   '/student/': typeof StudentIndexRoute
@@ -207,10 +228,13 @@ export interface FileRoutesByTo {
   '/student/join-class': typeof StudentJoinClassRoute
   '/student/progress': typeof StudentProgressRoute
   '/teacher/analytics': typeof TeacherAnalyticsRoute
+  '/teacher/assessments': typeof TeacherAssessmentsRoute
+  '/teacher/assignments': typeof TeacherAssignmentsRoute
   '/teacher/classes': typeof TeacherClassesRoute
   '/teacher/dashboard': typeof TeacherDashboardRoute
   '/teacher/leaderboard': typeof TeacherLeaderboardRoute
   '/teacher/modules': typeof TeacherModulesRoute
+  '/teacher/pretests': typeof TeacherPretestsRoute
   '/teacher/profile': typeof TeacherProfileRoute
   '/teacher/settings': typeof TeacherSettingsRoute
   '/student': typeof StudentIndexRoute
@@ -236,10 +260,13 @@ export interface FileRoutesById {
   '/student/join-class': typeof StudentJoinClassRoute
   '/student/progress': typeof StudentProgressRoute
   '/teacher/analytics': typeof TeacherAnalyticsRoute
+  '/teacher/assessments': typeof TeacherAssessmentsRoute
+  '/teacher/assignments': typeof TeacherAssignmentsRoute
   '/teacher/classes': typeof TeacherClassesRoute
   '/teacher/dashboard': typeof TeacherDashboardRoute
   '/teacher/leaderboard': typeof TeacherLeaderboardRoute
   '/teacher/modules': typeof TeacherModulesRoute
+  '/teacher/pretests': typeof TeacherPretestsRoute
   '/teacher/profile': typeof TeacherProfileRoute
   '/teacher/settings': typeof TeacherSettingsRoute
   '/student/': typeof StudentIndexRoute
@@ -266,10 +293,13 @@ export interface FileRouteTypes {
     | '/student/join-class'
     | '/student/progress'
     | '/teacher/analytics'
+    | '/teacher/assessments'
+    | '/teacher/assignments'
     | '/teacher/classes'
     | '/teacher/dashboard'
     | '/teacher/leaderboard'
     | '/teacher/modules'
+    | '/teacher/pretests'
     | '/teacher/profile'
     | '/teacher/settings'
     | '/student/'
@@ -292,10 +322,13 @@ export interface FileRouteTypes {
     | '/student/join-class'
     | '/student/progress'
     | '/teacher/analytics'
+    | '/teacher/assessments'
+    | '/teacher/assignments'
     | '/teacher/classes'
     | '/teacher/dashboard'
     | '/teacher/leaderboard'
     | '/teacher/modules'
+    | '/teacher/pretests'
     | '/teacher/profile'
     | '/teacher/settings'
     | '/student'
@@ -320,10 +353,13 @@ export interface FileRouteTypes {
     | '/student/join-class'
     | '/student/progress'
     | '/teacher/analytics'
+    | '/teacher/assessments'
+    | '/teacher/assignments'
     | '/teacher/classes'
     | '/teacher/dashboard'
     | '/teacher/leaderboard'
     | '/teacher/modules'
+    | '/teacher/pretests'
     | '/teacher/profile'
     | '/teacher/settings'
     | '/student/'
@@ -405,6 +441,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeacherProfileRouteImport
       parentRoute: typeof TeacherRoute
     }
+    '/teacher/pretests': {
+      id: '/teacher/pretests'
+      path: '/pretests'
+      fullPath: '/teacher/pretests'
+      preLoaderRoute: typeof TeacherPretestsRouteImport
+      parentRoute: typeof TeacherRoute
+    }
     '/teacher/modules': {
       id: '/teacher/modules'
       path: '/modules'
@@ -431,6 +474,20 @@ declare module '@tanstack/react-router' {
       path: '/classes'
       fullPath: '/teacher/classes'
       preLoaderRoute: typeof TeacherClassesRouteImport
+      parentRoute: typeof TeacherRoute
+    }
+    '/teacher/assignments': {
+      id: '/teacher/assignments'
+      path: '/assignments'
+      fullPath: '/teacher/assignments'
+      preLoaderRoute: typeof TeacherAssignmentsRouteImport
+      parentRoute: typeof TeacherRoute
+    }
+    '/teacher/assessments': {
+      id: '/teacher/assessments'
+      path: '/assessments'
+      fullPath: '/teacher/assessments'
+      preLoaderRoute: typeof TeacherAssessmentsRouteImport
       parentRoute: typeof TeacherRoute
     }
     '/teacher/analytics': {
@@ -569,10 +626,13 @@ const StudentRouteWithChildren =
 
 interface TeacherRouteChildren {
   TeacherAnalyticsRoute: typeof TeacherAnalyticsRoute
+  TeacherAssessmentsRoute: typeof TeacherAssessmentsRoute
+  TeacherAssignmentsRoute: typeof TeacherAssignmentsRoute
   TeacherClassesRoute: typeof TeacherClassesRoute
   TeacherDashboardRoute: typeof TeacherDashboardRoute
   TeacherLeaderboardRoute: typeof TeacherLeaderboardRoute
   TeacherModulesRoute: typeof TeacherModulesRoute
+  TeacherPretestsRoute: typeof TeacherPretestsRoute
   TeacherProfileRoute: typeof TeacherProfileRoute
   TeacherSettingsRoute: typeof TeacherSettingsRoute
   TeacherIndexRoute: typeof TeacherIndexRoute
@@ -582,10 +642,13 @@ interface TeacherRouteChildren {
 
 const TeacherRouteChildren: TeacherRouteChildren = {
   TeacherAnalyticsRoute: TeacherAnalyticsRoute,
+  TeacherAssessmentsRoute: TeacherAssessmentsRoute,
+  TeacherAssignmentsRoute: TeacherAssignmentsRoute,
   TeacherClassesRoute: TeacherClassesRoute,
   TeacherDashboardRoute: TeacherDashboardRoute,
   TeacherLeaderboardRoute: TeacherLeaderboardRoute,
   TeacherModulesRoute: TeacherModulesRoute,
+  TeacherPretestsRoute: TeacherPretestsRoute,
   TeacherProfileRoute: TeacherProfileRoute,
   TeacherSettingsRoute: TeacherSettingsRoute,
   TeacherIndexRoute: TeacherIndexRoute,

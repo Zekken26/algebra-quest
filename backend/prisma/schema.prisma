@@ -42,6 +42,24 @@ enum ContentType {
   ASSESSMENT
 }
 
+enum QuestionType {
+  MULTIPLE_CHOICE
+  TRUE_FALSE
+  IDENTIFICATION
+  MATCHING
+  ENUMERATION
+  SHORT_ANSWER
+  ESSAY
+}
+
+enum SubmissionType {
+  FILE_UPLOAD
+  ESSAY
+  SHORT_ANSWER
+  MULTIPLE_CHOICE
+  ATTACHMENTS
+}
+
 enum SubmissionStatus {
   NOT_STARTED
   IN_PROGRESS
@@ -384,22 +402,30 @@ model ShopPurchase {
 }
 
 model ClassContent {
-  id               String      @id @default(cuid())
-  title            String
-  type             ContentType
-  description      String?
-  instructions     String?
-  dueDate          DateTime?
-  availableFrom    DateTime?
-  availableTo      DateTime?
-  submissionType   String?     @default("quiz")
-  timeLimitMinutes Int?
-  maxScore         Int?
-  isPublished      Boolean     @default(false)
-  teacherId        String
-  sectionId        String
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  id                  String         @id @default(cuid())
+  title               String
+  type                ContentType
+  description         String?
+  instructions        String?
+  dueDate             DateTime?
+  availableFrom       DateTime?
+  availableTo         DateTime?
+  submissionType      String?        @default("quiz")
+  submissionTypes     SubmissionType[]
+  timeLimitMinutes    Int?
+  maxScore            Int?
+  isPublished         Boolean        @default(false)
+  passingScore        Int?
+  shuffleQuestions    Boolean        @default(false)
+  shuffleChoices      Boolean        @default(false)
+  attemptsAllowed     Int            @default(1)
+  showScoreImmediately Boolean       @default(true)
+  randomQuestions     Int?
+  autoGrade           Boolean        @default(true)
+  teacherId           String
+  sectionId           String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   teacher   User              @relation("TeacherContent", fields: [teacherId], references: [id], onDelete: Cascade)
   section   ClassSection      @relation(fields: [sectionId], references: [id], onDelete: Cascade)
@@ -412,15 +438,19 @@ model ClassContent {
 }
 
 model ContentQuestion {
-  id            String   @id @default(cuid())
-  contentId     String
-  equation      String
-  choices       String[]
-  correctAnswer String
-  explanation   String   @default("")
-  points        Int      @default(1)
-  difficulty    String   @default("Medium")
-  imageUrl      String?
+  id               String       @id @default(cuid())
+  contentId        String
+  equation         String
+  questionType     QuestionType @default(MULTIPLE_CHOICE)
+  choices          String[]
+  correctAnswer    String
+  explanation      String       @default("")
+  points           Int          @default(1)
+  difficulty       String       @default("Medium")
+  imageUrl         String?
+  matchingPairs    Json?
+  enumerationItems String[]
+  isCorrect        Boolean?
 
   content ClassContent    @relation(fields: [contentId], references: [id], onDelete: Cascade)
   answers ContentAnswer[]

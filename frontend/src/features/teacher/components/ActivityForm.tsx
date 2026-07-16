@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { toast } from "sonner";
 import { CreateQuestWizard } from "@/features/teacher/components/CreateQuestWizard";
 import { ClassContentForm } from "@/features/teacher/components/ClassContentForm";
@@ -6,10 +6,10 @@ import type { ActivityType } from "@/features/teacher/types/teacher.types";
 import type { TeacherSection } from "@/features/teacher/services/teacherService";
 
 const TYPE_OPTIONS: Array<{ value: ActivityType; label: string; description: string }> = [
-  { value: "QUEST", label: "🗡 Quest", description: "Interactive math quest with puzzle pieces, hearts, and hints." },
-  { value: "ASSIGNMENT", label: "📄 Assignment", description: "Written questions or file submission. Teacher can review and manually grade." },
-  { value: "PRE_TEST", label: "📘 Pre-Test", description: "Auto-graded diagnostic to measure prior knowledge before lessons." },
-  { value: "ASSESSMENT", label: "🏆 Assessment", description: "Quiz/exam with multiple question types. Auto-scored and recorded in gradebook." },
+  { value: "QUEST", label: "≡ƒùí Quest", description: "Interactive math quest with puzzle pieces, hearts, and hints." },
+  { value: "ASSIGNMENT", label: "≡ƒôä Assignment", description: "Written questions or file submission. Teacher can review and manually grade." },
+  { value: "PRE_TEST", label: "≡ƒôÿ Pre-Test", description: "Auto-graded diagnostic to measure prior knowledge before lessons." },
+  { value: "ASSESSMENT", label: "≡ƒÅå Assessment", description: "Quiz/exam with multiple question types. Auto-scored and recorded in gradebook." },
 ];
 
 type Props = {

@@ -4,6 +4,10 @@ import { toast } from "sonner";
 import { GameQuestionBuilder } from "@/features/teacher/components/GameQuestionBuilder";
 import { ModuleEditor } from "@/features/teacher/components/ModuleEditor";
 import { QuizBuilder } from "@/features/teacher/components/QuizBuilder";
+import { TabNav } from "@/features/teacher/components/TabNav";
+import { AssignmentBuilder } from "@/features/teacher/components/AssignmentBuilder";
+import { PreTestBuilder } from "@/features/teacher/components/PreTestBuilder";
+import { AssessmentBuilder } from "@/features/teacher/components/AssessmentBuilder";
 import { TeacherHeader } from "@/features/teacher/components/TeacherHeader";
 import {
   addQuestionToQuest,
@@ -19,8 +23,11 @@ import {
 } from "@/features/teacher/services/teacherService";
 import type { TeacherModule } from "@/features/teacher/types/teacher.types";
 
+type Tab = "quests" | "assignments" | "pretests" | "assessments";
+
 export function ModuleBuilderPage() {
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState<Tab>("quests");
   const [modules, setModules] = useState<TeacherModule[]>([]);
   const [sectionId, setSectionId] = useState("");
   const [selectedModuleId, setSelectedModuleId] = useState("");
@@ -162,126 +169,132 @@ export function ModuleBuilderPage() {
       <TeacherHeader
         title="Module Builder"
         subtitle="Author quest guides, quiz checks, and game questions before publishing to classes."
-        actionLabel="Create Quest"
-        onAction={createQuest}
       />
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <ModuleEditor
-          modules={modules}
-          onCreate={createQuest}
-          onEdit={openEditQuest}
-          onDelete={setDeletingModule}
-          onTogglePublish={togglePublish}
-          onSelect={(module) => {
-            setSelectedModuleId(module.id);
-            toast.success(`${module.title} selected.`);
-          }}
-          selectedModuleId={selectedModuleId}
-        />
-        <div className="space-y-6">
-          <QuizBuilder disabled={!selectedModuleId} onAddQuestion={addQuestion} />
-          <GameQuestionBuilder disabled={!selectedModuleId} onAddQuestion={addQuestion} />
-          <section className="teacher-card p-5">
-            <h2 className="font-display text-xl text-primary">Question Editor</h2>
-            <p className="mt-1 text-sm text-stone-foreground/70">
-              {selectedQuest ? selectedQuest.title : "Select a quest to edit its questions."}
-            </p>
-            <div className="mt-4 grid gap-3">
-              {selectedQuest?.questions?.length ? (
-                selectedQuest.questions.map((question) => (
-                  <article
-                    key={question.id}
-                    className="rounded-2xl border border-primary/15 bg-black/20 p-4"
+      <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
+      {activeTab === "quests" && (
+        <div>
+          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <ModuleEditor
+              modules={modules}
+              onCreate={createQuest}
+              onEdit={openEditQuest}
+              onDelete={setDeletingModule}
+              onTogglePublish={togglePublish}
+              onSelect={(module) => {
+                setSelectedModuleId(module.id);
+                toast.success(`${module.title} selected.`);
+              }}
+              selectedModuleId={selectedModuleId}
+            />
+            <div className="space-y-6">
+              <QuizBuilder disabled={!selectedModuleId} onAddQuestion={addQuestion} />
+              <GameQuestionBuilder disabled={!selectedModuleId} onAddQuestion={addQuestion} />
+              <section className="teacher-card p-5">
+                <h2 className="font-display text-xl text-primary">Question Editor</h2>
+                <p className="mt-1 text-sm text-stone-foreground/70">
+                  {selectedQuest ? selectedQuest.title : "Select a quest to edit its questions."}
+                </p>
+                <div className="mt-4 grid gap-3">
+                  {selectedQuest?.questions?.length ? (
+                    selectedQuest.questions.map((question) => (
+                      <article
+                        key={question.id}
+                        className="rounded-2xl border border-primary/15 bg-black/20 p-4"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="font-semibold text-primary">{question.equation}</p>
+                            <p className="mt-1 text-sm text-stone-foreground/70">
+                              Answer: {question.correctAnswer}
+                            </p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              type="button"
+                              className="btn-game btn-stone text-xs"
+                              onClick={() => setEditingQuestion(question)}
+                            >
+                              Edit
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-game text-xs"
+                              onClick={() => void removeQuestion(question)}
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    ))
+                  ) : (
+                    <p className="text-sm text-stone-foreground/70">No questions yet.</p>
+                  )}
+                </div>
+              </section>
+            </div>
+          </div>
+          {editingModule ? (
+            <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">
+              <section className="teacher-card w-full max-w-md p-5">
+                <h2 className="font-display text-xl text-primary">Edit Quest</h2>
+                <label className="mt-4 grid gap-2">
+                  <span className="text-sm text-stone-foreground/70">Quest title</span>
+                  <input
+                    className="teacher-input"
+                    value={editTitle}
+                    onChange={(event) => setEditTitle(event.target.value)}
+                  />
+                </label>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    className="btn-game btn-stone text-sm"
+                    onClick={() => setEditingModule(null)}
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-primary">{question.equation}</p>
-                        <p className="mt-1 text-sm text-stone-foreground/70">
-                          Answer: {question.correctAnswer}
-                        </p>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          className="btn-game btn-stone text-xs"
-                          onClick={() => setEditingQuestion(question)}
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className="btn-game text-xs"
-                          onClick={() => void removeQuestion(question)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <p className="text-sm text-stone-foreground/70">No questions yet.</p>
-              )}
+                    Cancel
+                  </button>
+                  <button type="button" className="btn-game text-sm" onClick={() => void editQuest()}>
+                    Save
+                  </button>
+                </div>
+              </section>
             </div>
-          </section>
-        </div>
-      </div>
-      {editingModule ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">
-          <section className="teacher-card w-full max-w-md p-5">
-            <h2 className="font-display text-xl text-primary">Edit Quest</h2>
-            <label className="mt-4 grid gap-2">
-              <span className="text-sm text-stone-foreground/70">Quest title</span>
-              <input
-                className="teacher-input"
-                value={editTitle}
-                onChange={(event) => setEditTitle(event.target.value)}
-              />
-            </label>
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                className="btn-game btn-stone text-sm"
-                onClick={() => setEditingModule(null)}
-              >
-                Cancel
-              </button>
-              <button type="button" className="btn-game text-sm" onClick={() => void editQuest()}>
-                Save
-              </button>
+          ) : null}
+          {deletingModule ? (
+            <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">
+              <section className="teacher-card w-full max-w-md p-5">
+                <h2 className="font-display text-xl text-primary">Delete Quest</h2>
+                <p className="mt-3 text-sm leading-6 text-stone-foreground/75">
+                  Delete {deletingModule.title}?
+                </p>
+                <div className="mt-5 flex justify-end gap-3">
+                  <button
+                    type="button"
+                    className="btn-game btn-stone text-sm"
+                    onClick={() => setDeletingModule(null)}
+                  >
+                    Cancel
+                  </button>
+                  <button type="button" className="btn-game text-sm" onClick={() => void deleteQuest()}>
+                    Delete
+                  </button>
+                </div>
+              </section>
             </div>
-          </section>
+          ) : null}
+          {editingQuestion ? (
+            <QuestionEditorModal
+              question={editingQuestion}
+              onCancel={() => setEditingQuestion(null)}
+              onSave={(question) => void saveQuestion(question)}
+            />
+          ) : null}
         </div>
-      ) : null}
-      {deletingModule ? (
-        <div className="fixed inset-0 z-50 grid place-items-center bg-black/70 px-4">
-          <section className="teacher-card w-full max-w-md p-5">
-            <h2 className="font-display text-xl text-primary">Delete Quest</h2>
-            <p className="mt-3 text-sm leading-6 text-stone-foreground/75">
-              Delete {deletingModule.title}?
-            </p>
-            <div className="mt-5 flex justify-end gap-3">
-              <button
-                type="button"
-                className="btn-game btn-stone text-sm"
-                onClick={() => setDeletingModule(null)}
-              >
-                Cancel
-              </button>
-              <button type="button" className="btn-game text-sm" onClick={() => void deleteQuest()}>
-                Delete
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
-      {editingQuestion ? (
-        <QuestionEditorModal
-          question={editingQuestion}
-          onCancel={() => setEditingQuestion(null)}
-          onSave={(question) => void saveQuestion(question)}
-        />
-      ) : null}
+      )}
+      {activeTab === "assignments" && <AssignmentBuilder />}
+      {activeTab === "pretests" && <PreTestBuilder />}
+      {activeTab === "assessments" && <AssessmentBuilder />}
     </div>
   );
 }
