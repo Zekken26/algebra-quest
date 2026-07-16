@@ -3,6 +3,7 @@ import { requireAuth, requireRole } from "../../middleware/auth.middleware";
 import { uploadQuestImage } from "../../middleware/upload.middleware";
 import * as teacherController from "./teacher.controller";
 import * as contentController from "./content.controller";
+import * as submissionController from "../submissions/submission.controller";
 import { teacherProfileRouter } from "./teacherProfile.routes";
 
 export const teacherRouter = Router();
@@ -71,3 +72,8 @@ teacherRouter.get("/content/:contentId", contentController.getContentDetail);
 teacherRouter.put("/content/:contentId", contentController.updateClassContent);
 teacherRouter.post("/content/:contentId/toggle-publish", contentController.togglePublishContent);
 teacherRouter.delete("/content/:contentId", contentController.deleteClassContent);
+
+teacherRouter.get("/content/:contentId/submissions", submissionController.getContentSubmissions);
+teacherRouter.get("/submissions/:submissionId", submissionController.getSubmissionDetail);
+teacherRouter.put("/submissions/:submissionId/grade", submissionController.gradeSubmission);
+teacherRouter.get("/sections/:sectionId/submissions", submissionController.getSectionSubmissions);

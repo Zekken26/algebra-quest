@@ -2,7 +2,7 @@ import { getAuth, saveAuth } from "@/lib/store";
 import type {
   ActivityItem,
   AnalyticsPoint,
-  ClassContentItem,
+  ClassContentItem as ClassContentItemType,
   DashboardStats,
   TeacherActivity,
   TeacherClass,
@@ -10,6 +10,8 @@ import type {
   TeacherStudent,
   WeakTopic,
 } from "@/features/teacher/types/teacher.types";
+
+export type ClassContentItem = ClassContentItemType;
 
 const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api";
 
@@ -407,7 +409,11 @@ export async function fetchSectionContent(sectionId: string, type?: string) {
 export async function createClassContent(input: {
   title: string;
   type: string;
+  description?: string | null;
   instructions?: string;
+  dueDate?: string;
+  availableFrom?: string;
+  availableTo?: string;
   timeLimitMinutes?: number | null;
   isPublished?: boolean;
   classId?: string | null;
@@ -767,5 +773,12 @@ export async function deleteActivity(activityId: string) {
 export async function fetchActivityDetail(activityId: string) {
   return apiRequest<{ activity: ActivityItem }>(
     `/teacher/activities/${activityId}`,
+  );
+}
+
+export async function togglePublishContent(contentId: string) {
+  return apiRequest<{ content: ClassContentItem }>(
+    `/teacher/content/${contentId}/toggle-publish`,
+    { method: "POST" },
   );
 }
