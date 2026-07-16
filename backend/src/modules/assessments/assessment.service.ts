@@ -42,41 +42,69 @@ export async function createAssessment(
   if (!sectionId) throw new AppError("sectionId or classId is required.", 400, "SECTION_REQUIRED");
   await assertTeacherOwnsSection(teacherId, sectionId);
 
-  const content = await prisma.classContent.create({
-    data: {
-      title: input.title,
-      type: "ASSESSMENT",
-      description: input.description ?? null,
-      instructions: input.instructions ?? null,
-      dueDate: input.dueDate ? new Date(input.dueDate) : null,
-      availableFrom: input.availableFrom ? new Date(input.availableFrom) : null,
-      availableTo: input.availableTo ? new Date(input.availableTo) : null,
-      maxScore: input.totalPoints ?? null,
-      timeLimitMinutes: input.timeLimitMinutes ?? null,
-      passingScore: input.passingScore ?? null,
-      attemptsAllowed: input.attemptsAllowed ?? 1,
-      autoGrade: input.autoGrade ?? true,
-      shuffleQuestions: input.shuffleQuestions ?? false,
-      shuffleChoices: input.shuffleChoices ?? false,
-      isPublished: input.isPublished ?? false,
-      teacherId,
-      sectionId,
-      questions: input.questions?.length ? {
-        create: input.questions.map((q) => ({
-          equation: q.equation,
-          questionType: (q.questionType as any) ?? "MULTIPLE_CHOICE",
-          choices: q.choices,
-          correctAnswer: q.correctAnswer,
-          explanation: q.explanation,
-          points: q.points ?? 1,
-          difficulty: q.difficulty ?? "Medium",
-        })),
-      } : undefined,
-    },
-    include: assessmentInclude,
+  const result = await prisma.$transaction(async (tx) => {
+    const content = await tx.classContent.create({
+      data: {
+        title: input.title,
+        type: "ASSESSMENT",
+        description: input.description ?? null,
+        instructions: input.instructions ?? null,
+        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        availableFrom: input.availableFrom ? new Date(input.availableFrom) : null,
+        availableTo: input.availableTo ? new Date(input.availableTo) : null,
+        maxScore: input.totalPoints ?? null,
+        timeLimitMinutes: input.timeLimitMinutes ?? null,
+        passingScore: input.passingScore ?? null,
+        attemptsAllowed: input.attemptsAllowed ?? 1,
+        autoGrade: input.autoGrade ?? true,
+        shuffleQuestions: input.shuffleQuestions ?? false,
+        shuffleChoices: input.shuffleChoices ?? false,
+        isPublished: input.isPublished ?? false,
+        teacherId,
+        sectionId,
+        questions: input.questions?.length ? {
+          create: input.questions.map((q) => ({
+            equation: q.equation,
+            questionType: (q.questionType as any) ?? "MULTIPLE_CHOICE",
+            choices: q.choices,
+            correctAnswer: q.correctAnswer,
+            explanation: q.explanation,
+            points: q.points ?? 1,
+            difficulty: q.difficulty ?? "Medium",
+          })),
+        } : undefined,
+      },
+    });
+
+    const maxOrderIndex = await tx.activity.aggregate({
+      where: { sectionId },
+      _max: { orderIndex: true },
+    });
+
+    await tx.activity.create({
+      data: {
+        type: "ASSESSMENT",
+        title: input.title,
+        description: input.description ?? null,
+        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        availableFrom: input.availableFrom ? new Date(input.availableFrom) : null,
+        availableTo: input.availableTo ? new Date(input.availableTo) : null,
+        totalPoints: input.totalPoints ?? null,
+        isPublished: input.isPublished ?? false,
+        orderIndex: (maxOrderIndex._max.orderIndex ?? -1) + 1,
+        teacherId,
+        sectionId,
+        contentId: content.id,
+      },
+    });
+
+    return tx.classContent.findUniqueOrThrow({
+      where: { id: content.id },
+      include: assessmentInclude,
+    });
   });
 
-  return content;
+  return result;
 }
 
 export async function getAssessments(teacherId: string, sectionId?: string) {

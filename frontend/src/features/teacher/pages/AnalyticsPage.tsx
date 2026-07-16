@@ -88,7 +88,7 @@ export function AnalyticsPage() {
                 </div>
                 <div className="h-4 overflow-hidden rounded-full bg-black/25">
                   <div
-                    className="h-full rounded-full bg-[var(--gradient-gold)]"
+                    className="h-full rounded-full bg-(--gradient-gold)"
                     style={{ width: `${topic.intensity}%` }}
                   />
                 </div>
