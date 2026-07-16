@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { DateTimeInput } from "@/shared/components/DateTimeInput";
 import { createClassContent } from "@/features/teacher/services/teacherService";
 import type { ClassContentItem, ClassContentType } from "@/features/teacher/types/teacher.types";
 
@@ -105,7 +106,7 @@ export function AssignmentForm({ classId, contentType, onClose, onCreated, editI
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1">
               <span className="text-xs text-stone-foreground/60">Due Date</span>
-              <input className="teacher-input" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <DateTimeInput type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </label>
             <label className="grid gap-1">
               <span className="text-xs text-stone-foreground/60">Time Limit (minutes, optional)</span>

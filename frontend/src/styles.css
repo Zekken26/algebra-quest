@@ -229,6 +229,7 @@
 
   .teacher-input {
     width: 100%;
+    box-sizing: border-box;
     border-radius: 0.85rem;
     border: 1px solid oklch(0.7 0.09 80 / 0.22);
     background: oklch(0.16 0.035 165 / 0.55);
@@ -258,33 +259,115 @@
     opacity: 1;
   }
 
-  /* Normalize date/time inputs to match teacher-input height */
+  /* ── Normalize date/time inputs to match .teacher-input height ── */
   input[type="date"].teacher-input,
   input[type="datetime-local"].teacher-input,
   input[type="time"].teacher-input {
-    min-height: 48px;
-    padding: 12px 16px;
+    height: 48px;
+    padding: 0 16px;
     font-size: 16px;
     line-height: 1.4;
-    display: flex;
-    align-items: center;
+    color-scheme: dark;
     -webkit-appearance: none;
     appearance: none;
-    color-scheme: dark;
+    -moz-appearance: none;
   }
 
-  /* Calendar picker icon — gold tint for dark theme */
-  input[type="date"]::-webkit-calendar-picker-indicator,
-  input[type="datetime-local"]::-webkit-calendar-picker-indicator,
-  input[type="time"]::-webkit-calendar-picker-indicator {
+  /* Chrome/Edge: internal date/time edit area */
+  input[type="date"].teacher-input::-webkit-datetime-edit,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit,
+  input[type="time"].teacher-input::-webkit-datetime-edit {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    padding: 0;
+    line-height: 1.4;
+    font-size: 16px;
+    color: var(--color-foreground);
+  }
+
+  /* Chrome/Edge: wrapper inside the edit area */
+  input[type="date"].teacher-input::-webkit-datetime-edit-fields-wrapper,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-fields-wrapper,
+  input[type="time"].teacher-input::-webkit-datetime-edit-fields-wrapper {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    padding: 0;
+    line-height: 1.4;
+  }
+
+  /* Chrome/Edge: separator text (colons, slashes) */
+  input[type="date"].teacher-input::-webkit-datetime-edit-text,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-text,
+  input[type="time"].teacher-input::-webkit-datetime-edit-text {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 1px;
+    line-height: 1.4;
+    color: var(--color-foreground);
+  }
+
+  /* Chrome/Edge: individual field (month, day, year, hour, minute) */
+  input[type="date"].teacher-input::-webkit-datetime-edit-year-field,
+  input[type="date"].teacher-input::-webkit-datetime-edit-month-field,
+  input[type="date"].teacher-input::-webkit-datetime-edit-day-field,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-year-field,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-month-field,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-day-field,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-hour-field,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-minute-field,
+  input[type="datetime-local"].teacher-input::-webkit-datetime-edit-ampm-field,
+  input[type="time"].teacher-input::-webkit-datetime-edit-hour-field,
+  input[type="time"].teacher-input::-webkit-datetime-edit-minute-field,
+  input[type="time"].teacher-input::-webkit-datetime-edit-ampm-field {
+    display: inline-flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 2px;
+    line-height: 1.4;
+    color: var(--color-foreground);
+  }
+
+  /* Chrome/Edge: calendar picker icon */
+  input[type="date"].teacher-input::-webkit-calendar-picker-indicator,
+  input[type="datetime-local"].teacher-input::-webkit-calendar-picker-indicator,
+  input[type="time"].teacher-input::-webkit-calendar-picker-indicator {
     filter: invert(0.85) sepia(0.3) hue-rotate(5deg);
     opacity: 0.8;
     cursor: pointer;
+    padding: 0;
+    margin: auto 0;
+    height: 18px;
+    width: 18px;
+    align-self: center;
   }
-  input[type="date"]::-webkit-calendar-picker-indicator:hover,
-  input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover,
-  input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  input[type="date"].teacher-input::-webkit-calendar-picker-indicator:hover,
+  input[type="datetime-local"].teacher-input::-webkit-calendar-picker-indicator:hover,
+  input[type="time"].teacher-input::-webkit-calendar-picker-indicator:hover {
     opacity: 1;
+  }
+
+  /* Chrome/Edge: clear button (if present) */
+  input[type="date"].teacher-input::-webkit-clear-button,
+  input[type="datetime-local"].teacher-input::-webkit-clear-button,
+  input[type="time"].teacher-input::-webkit-clear-button {
+    display: none;
+  }
+
+  /* Chrome/Edge: inner spin button for time */
+  input[type="date"].teacher-input::-webkit-inner-spin-button,
+  input[type="datetime-local"].teacher-input::-webkit-inner-spin-button,
+  input[type="time"].teacher-input::-webkit-inner-spin-button {
+    display: none;
+  }
+
+  /* Firefox: force consistent height */
+  input[type="date"].teacher-input,
+  input[type="datetime-local"].teacher-input,
+  input[type="time"].teacher-input {
+    -moz-appearance: textfield;
   }
 
   .student-nav-chip {

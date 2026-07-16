@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { toast } from "sonner";
+import { DateTimeInput } from "@/shared/components/DateTimeInput";
 import { fetchTeacherSections } from "@/features/teacher/services/teacherService";
 import type { TeacherSection } from "@/features/teacher/services/teacherService";
 
@@ -127,30 +128,24 @@ export function ModuleActivityForm({
             />
           </label>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <label className="grid gap-1.5">
               <span className="text-sm font-medium text-stone-foreground/80">Due Date</span>
-              <input
-                type="datetime-local"
-                className="teacher-input"
+              <DateTimeInput
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
             </label>
             <label className="grid gap-1.5">
               <span className="text-sm font-medium text-stone-foreground/80">Available From</span>
-              <input
-                type="datetime-local"
-                className="teacher-input"
+              <DateTimeInput
                 value={availableFrom}
                 onChange={(e) => setAvailableFrom(e.target.value)}
               />
             </label>
             <label className="grid gap-1.5">
               <span className="text-sm font-medium text-stone-foreground/80">Available Until</span>
-              <input
-                type="datetime-local"
-                className="teacher-input"
+              <DateTimeInput
                 value={availableTo}
                 onChange={(e) => setAvailableTo(e.target.value)}
               />
