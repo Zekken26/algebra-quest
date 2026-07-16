@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import {
   BookOpenText,
+  Eye,
+  EyeOff,
   GraduationCap,
   Lock,
   Mail,
@@ -254,7 +256,7 @@ function LoginPage() {
               <AuthField
                 label="Password"
                 icon={Lock}
-                type="password"
+                isPassword
                 value={password}
                 onChange={setPassword}
                 placeholder="Enter your password"
@@ -264,7 +266,7 @@ function LoginPage() {
                 <AuthField
                   label="Confirm password"
                   icon={Lock}
-                  type="password"
+                  isPassword
                   value={confirmPassword}
                   onChange={setConfirmPassword}
                   placeholder="Confirm your password"
@@ -334,6 +336,7 @@ type AuthFieldProps = {
   onChange: (value: string) => void;
   placeholder: string;
   type?: string;
+  isPassword?: boolean;
 };
 
 function AuthField({
@@ -343,20 +346,33 @@ function AuthField({
   onChange,
   placeholder,
   type = "text",
+  isPassword,
 }: AuthFieldProps) {
+  const [show, setShow] = useState(false);
   return (
     <label className="block">
       <span className="mb-2 block font-display text-sm text-primary">{label}</span>
       <span className="relative block">
         <Icon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-primary/70" />
         <input
-          type={type}
+          type={isPassword && !show ? "password" : "text"}
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder={placeholder}
-          className="h-12 w-full rounded-2xl border border-primary/20 bg-black/25 pl-10 pr-3 text-stone-foreground outline-none transition placeholder:text-stone-foreground/35 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className={`h-12 w-full rounded-2xl border border-primary/20 bg-black/25 text-stone-foreground outline-none transition placeholder:text-stone-foreground/35 focus:border-primary focus:ring-2 focus:ring-primary/20 ${isPassword ? "pr-10" : "pr-3"} pl-10`}
           required
         />
+        {isPassword && (
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-primary/60 transition hover:text-primary"
+            tabIndex={-1}
+            aria-label={show ? "Hide password" : "Show password"}
+          >
+            {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
       </span>
     </label>
   );
