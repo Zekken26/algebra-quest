@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { ActivityList } from "./ActivityList";
@@ -18,6 +19,7 @@ import type { QuestionData } from "./QuestionBuilder";
 import type { TeacherSection } from "@/features/teacher/services/teacherService";
 
 export function AssignmentBuilder() {
+  const navigate = useNavigate();
   const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -49,11 +51,7 @@ export function AssignmentBuilder() {
   const selected = assignments.find((a) => a.id === selectedId);
 
   const handleCreate = () => {
-    setEditingId(null);
-    setQuestions([]);
-    setSubmissionType("MULTIPLE_CHOICE");
-    setPassingScore("");
-    setShowForm(true);
+    navigate({ to: "/teacher/assignments/create" });
   };
 
   const handleEdit = (item: any) => {

@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { ActivityList } from "./ActivityList";
@@ -17,6 +18,7 @@ import type { QuestionData } from "./QuestionBuilder";
 import type { TeacherSection } from "@/features/teacher/services/teacherService";
 
 export function PreTestBuilder() {
+  const navigate = useNavigate();
   const [pretests, setPretests] = useState<PreTestItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -54,16 +56,7 @@ export function PreTestBuilder() {
   const selected = pretests.find((p) => p.id === selectedId);
 
   const handleCreate = () => {
-    setEditingId(null);
-    setQuestions([]);
-    setTimeLimit("");
-    setPassingScore("");
-    setShuffleQuestions(false);
-    setShuffleChoices(false);
-    setAttemptsAllowed("1");
-    setShowScoreImmediately(true);
-    setRandomQuestions("");
-    setShowForm(true);
+    navigate({ to: "/teacher/pretests/create" });
   };
 
   const handleEdit = (item: any) => {

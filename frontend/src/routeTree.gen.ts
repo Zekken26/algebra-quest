@@ -29,7 +29,10 @@ import { Route as StudentProgressRouteImport } from './routes/student.progress'
 import { Route as StudentJoinClassRouteImport } from './routes/student.join-class'
 import { Route as StudentGradesRouteImport } from './routes/student.grades'
 import { Route as TeacherQuestsCreateRouteImport } from './routes/teacher.quests.create'
+import { Route as TeacherPretestsCreateRouteImport } from './routes/teacher.pretests_.create'
 import { Route as TeacherClassesClassIdRouteImport } from './routes/teacher.classes_.$classId'
+import { Route as TeacherAssignmentsCreateRouteImport } from './routes/teacher.assignments_.create'
+import { Route as TeacherAssessmentsCreateRouteImport } from './routes/teacher.assessments_.create'
 import { Route as StudentProfileEditRouteImport } from './routes/student.profile.edit'
 import { Route as StudentContentContentIdRouteImport } from './routes/student.content.$contentId'
 import { Route as StudentClassesClassIdRouteImport } from './routes/student.classes.$classId'
@@ -139,11 +142,28 @@ const TeacherQuestsCreateRoute = TeacherQuestsCreateRouteImport.update({
   path: '/quests/create',
   getParentRoute: () => TeacherRoute,
 } as any)
+const TeacherPretestsCreateRoute = TeacherPretestsCreateRouteImport.update({
+  id: '/pretests_/create',
+  path: '/pretests/create',
+  getParentRoute: () => TeacherRoute,
+} as any)
 const TeacherClassesClassIdRoute = TeacherClassesClassIdRouteImport.update({
   id: '/classes_/$classId',
   path: '/classes/$classId',
   getParentRoute: () => TeacherRoute,
 } as any)
+const TeacherAssignmentsCreateRoute =
+  TeacherAssignmentsCreateRouteImport.update({
+    id: '/assignments_/create',
+    path: '/assignments/create',
+    getParentRoute: () => TeacherRoute,
+  } as any)
+const TeacherAssessmentsCreateRoute =
+  TeacherAssessmentsCreateRouteImport.update({
+    id: '/assessments_/create',
+    path: '/assessments/create',
+    getParentRoute: () => TeacherRoute,
+  } as any)
 const StudentProfileEditRoute = StudentProfileEditRouteImport.update({
   id: '/profile/edit',
   path: '/profile/edit',
@@ -213,7 +233,10 @@ export interface FileRoutesByFullPath {
   '/student/classes/$classId': typeof StudentClassesClassIdRoute
   '/student/content/$contentId': typeof StudentContentContentIdRoute
   '/student/profile/edit': typeof StudentProfileEditRoute
+  '/teacher/assessments/create': typeof TeacherAssessmentsCreateRoute
+  '/teacher/assignments/create': typeof TeacherAssignmentsCreateRoute
   '/teacher/classes/$classId': typeof TeacherClassesClassIdRoute
+  '/teacher/pretests/create': typeof TeacherPretestsCreateRoute
   '/teacher/quests/create': typeof TeacherQuestsCreateRoute
   '/student/modules/$moduleId/game': typeof StudentModulesModuleIdGameRoute
   '/student/modules/$moduleId/lesson': typeof StudentModulesModuleIdLessonRoute
@@ -242,7 +265,10 @@ export interface FileRoutesByTo {
   '/student/classes/$classId': typeof StudentClassesClassIdRoute
   '/student/content/$contentId': typeof StudentContentContentIdRoute
   '/student/profile/edit': typeof StudentProfileEditRoute
+  '/teacher/assessments/create': typeof TeacherAssessmentsCreateRoute
+  '/teacher/assignments/create': typeof TeacherAssignmentsCreateRoute
   '/teacher/classes/$classId': typeof TeacherClassesClassIdRoute
+  '/teacher/pretests/create': typeof TeacherPretestsCreateRoute
   '/teacher/quests/create': typeof TeacherQuestsCreateRoute
   '/student/modules/$moduleId/game': typeof StudentModulesModuleIdGameRoute
   '/student/modules/$moduleId/lesson': typeof StudentModulesModuleIdLessonRoute
@@ -274,7 +300,10 @@ export interface FileRoutesById {
   '/student/classes/$classId': typeof StudentClassesClassIdRoute
   '/student/content/$contentId': typeof StudentContentContentIdRoute
   '/student/profile/edit': typeof StudentProfileEditRoute
+  '/teacher/assessments_/create': typeof TeacherAssessmentsCreateRoute
+  '/teacher/assignments_/create': typeof TeacherAssignmentsCreateRoute
   '/teacher/classes_/$classId': typeof TeacherClassesClassIdRoute
+  '/teacher/pretests_/create': typeof TeacherPretestsCreateRoute
   '/teacher/quests/create': typeof TeacherQuestsCreateRoute
   '/student/modules/$moduleId/game': typeof StudentModulesModuleIdGameRoute
   '/student/modules/$moduleId/lesson': typeof StudentModulesModuleIdLessonRoute
@@ -307,7 +336,10 @@ export interface FileRouteTypes {
     | '/student/classes/$classId'
     | '/student/content/$contentId'
     | '/student/profile/edit'
+    | '/teacher/assessments/create'
+    | '/teacher/assignments/create'
     | '/teacher/classes/$classId'
+    | '/teacher/pretests/create'
     | '/teacher/quests/create'
     | '/student/modules/$moduleId/game'
     | '/student/modules/$moduleId/lesson'
@@ -336,7 +368,10 @@ export interface FileRouteTypes {
     | '/student/classes/$classId'
     | '/student/content/$contentId'
     | '/student/profile/edit'
+    | '/teacher/assessments/create'
+    | '/teacher/assignments/create'
     | '/teacher/classes/$classId'
+    | '/teacher/pretests/create'
     | '/teacher/quests/create'
     | '/student/modules/$moduleId/game'
     | '/student/modules/$moduleId/lesson'
@@ -367,7 +402,10 @@ export interface FileRouteTypes {
     | '/student/classes/$classId'
     | '/student/content/$contentId'
     | '/student/profile/edit'
+    | '/teacher/assessments_/create'
+    | '/teacher/assignments_/create'
     | '/teacher/classes_/$classId'
+    | '/teacher/pretests_/create'
     | '/teacher/quests/create'
     | '/student/modules/$moduleId/game'
     | '/student/modules/$moduleId/lesson'
@@ -525,11 +563,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TeacherQuestsCreateRouteImport
       parentRoute: typeof TeacherRoute
     }
+    '/teacher/pretests_/create': {
+      id: '/teacher/pretests_/create'
+      path: '/pretests/create'
+      fullPath: '/teacher/pretests/create'
+      preLoaderRoute: typeof TeacherPretestsCreateRouteImport
+      parentRoute: typeof TeacherRoute
+    }
     '/teacher/classes_/$classId': {
       id: '/teacher/classes_/$classId'
       path: '/classes/$classId'
       fullPath: '/teacher/classes/$classId'
       preLoaderRoute: typeof TeacherClassesClassIdRouteImport
+      parentRoute: typeof TeacherRoute
+    }
+    '/teacher/assignments_/create': {
+      id: '/teacher/assignments_/create'
+      path: '/assignments/create'
+      fullPath: '/teacher/assignments/create'
+      preLoaderRoute: typeof TeacherAssignmentsCreateRouteImport
+      parentRoute: typeof TeacherRoute
+    }
+    '/teacher/assessments_/create': {
+      id: '/teacher/assessments_/create'
+      path: '/assessments/create'
+      fullPath: '/teacher/assessments/create'
+      preLoaderRoute: typeof TeacherAssessmentsCreateRouteImport
       parentRoute: typeof TeacherRoute
     }
     '/student/profile/edit': {
@@ -636,7 +695,10 @@ interface TeacherRouteChildren {
   TeacherProfileRoute: typeof TeacherProfileRoute
   TeacherSettingsRoute: typeof TeacherSettingsRoute
   TeacherIndexRoute: typeof TeacherIndexRoute
+  TeacherAssessmentsCreateRoute: typeof TeacherAssessmentsCreateRoute
+  TeacherAssignmentsCreateRoute: typeof TeacherAssignmentsCreateRoute
   TeacherClassesClassIdRoute: typeof TeacherClassesClassIdRoute
+  TeacherPretestsCreateRoute: typeof TeacherPretestsCreateRoute
   TeacherQuestsCreateRoute: typeof TeacherQuestsCreateRoute
 }
 
@@ -652,7 +714,10 @@ const TeacherRouteChildren: TeacherRouteChildren = {
   TeacherProfileRoute: TeacherProfileRoute,
   TeacherSettingsRoute: TeacherSettingsRoute,
   TeacherIndexRoute: TeacherIndexRoute,
+  TeacherAssessmentsCreateRoute: TeacherAssessmentsCreateRoute,
+  TeacherAssignmentsCreateRoute: TeacherAssignmentsCreateRoute,
   TeacherClassesClassIdRoute: TeacherClassesClassIdRoute,
+  TeacherPretestsCreateRoute: TeacherPretestsCreateRoute,
   TeacherQuestsCreateRoute: TeacherQuestsCreateRoute,
 }
 
@@ -668,12 +733,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}

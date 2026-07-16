@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useState, useCallback } from "react";
 import { toast } from "sonner";
 import { ActivityList } from "./ActivityList";
@@ -17,6 +18,7 @@ import type { QuestionData } from "./QuestionBuilder";
 import type { TeacherSection } from "@/features/teacher/services/teacherService";
 
 export function AssessmentBuilder() {
+  const navigate = useNavigate();
   const [assessments, setAssessments] = useState<AssessmentItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -53,15 +55,7 @@ export function AssessmentBuilder() {
   const selected = assessments.find((a) => a.id === selectedId);
 
   const handleCreate = () => {
-    setEditingId(null);
-    setQuestions([]);
-    setTimeLimit("");
-    setPassingScore("");
-    setAttemptsAllowed("1");
-    setAutoGrade(true);
-    setShuffleQuestions(false);
-    setShuffleChoices(false);
-    setShowForm(true);
+    navigate({ to: "/teacher/assessments/create" });
   };
 
   const handleEdit = (item: any) => {

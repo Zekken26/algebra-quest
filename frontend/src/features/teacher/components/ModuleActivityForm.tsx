@@ -7,6 +7,7 @@ import type { TeacherSection } from "@/features/teacher/services/teacherService"
 
 type ModuleActivityFormProps = {
   title: string;
+  variant?: "modal" | "page";
   initial?: {
     title?: string;
     description?: string | null;
@@ -35,6 +36,7 @@ type ModuleActivityFormProps = {
 
 export function ModuleActivityForm({
   title,
+  variant = "modal",
   initial,
   onSave,
   onCancel,
@@ -87,119 +89,129 @@ export function ModuleActivityForm({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 px-4 py-8">
-      <section className="teacher-card w-full max-w-2xl p-5">
-        <div className="flex items-center justify-between">
-          <h2 className="font-display text-xl text-primary">{title}</h2>
+  const formContent = (
+    <>
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-xl text-primary">{title}</h2>
+        {variant === "modal" && (
           <button type="button" onClick={onCancel} className="text-stone-foreground/60 hover:text-stone-foreground">
             <X className="h-5 w-5" />
           </button>
+        )}
+      </div>
+
+      <div className="mt-5 grid gap-4">
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-stone-foreground/80">Title *</span>
+          <input
+            className="teacher-input"
+            value={formTitle}
+            onChange={(e) => setFormTitle(e.target.value)}
+            placeholder="Enter title..."
+          />
+        </label>
+
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-stone-foreground/80">Description</span>
+          <textarea
+            className="teacher-input min-h-20"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Brief description..."
+          />
+        </label>
+
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-stone-foreground/80">Instructions</span>
+          <textarea
+            className="teacher-input min-h-24"
+            value={instructions}
+            onChange={(e) => setInstructions(e.target.value)}
+            placeholder="Detailed instructions for students..."
+          />
+        </label>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <label className="grid gap-1.5">
+            <span className="text-sm font-medium text-stone-foreground/80">Due Date</span>
+            <DateTimeInput
+              value={dueDate}
+              onChange={(e) => setDueDate(e.target.value)}
+            />
+          </label>
+          <label className="grid gap-1.5">
+            <span className="text-sm font-medium text-stone-foreground/80">Available From</span>
+            <DateTimeInput
+              value={availableFrom}
+              onChange={(e) => setAvailableFrom(e.target.value)}
+            />
+          </label>
+          <label className="grid gap-1.5">
+            <span className="text-sm font-medium text-stone-foreground/80">Available Until</span>
+            <DateTimeInput
+              value={availableTo}
+              onChange={(e) => setAvailableTo(e.target.value)}
+            />
+          </label>
         </div>
 
-        <div className="mt-5 grid gap-4">
-          <label className="grid gap-1.5">
-            <span className="text-sm font-medium text-stone-foreground/80">Title *</span>
-            <input
-              className="teacher-input"
-              value={formTitle}
-              onChange={(e) => setFormTitle(e.target.value)}
-              placeholder="Enter title..."
-            />
-          </label>
+        <label className="grid gap-1.5">
+          <span className="text-sm font-medium text-stone-foreground/80">Total Points</span>
+          <input
+            type="number"
+            className="teacher-input w-full sm:w-40"
+            value={totalPoints}
+            onChange={(e) => setTotalPoints(e.target.value)}
+            min={0}
+            placeholder="e.g. 100"
+          />
+        </label>
 
-          <label className="grid gap-1.5">
-            <span className="text-sm font-medium text-stone-foreground/80">Description</span>
-            <textarea
-              className="teacher-input min-h-20"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief description..."
-            />
-          </label>
-
-          <label className="grid gap-1.5">
-            <span className="text-sm font-medium text-stone-foreground/80">Instructions</span>
-            <textarea
-              className="teacher-input min-h-24"
-              value={instructions}
-              onChange={(e) => setInstructions(e.target.value)}
-              placeholder="Detailed instructions for students..."
-            />
-          </label>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <label className="grid gap-1.5">
-              <span className="text-sm font-medium text-stone-foreground/80">Due Date</span>
-              <DateTimeInput
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-              />
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-sm font-medium text-stone-foreground/80">Available From</span>
-              <DateTimeInput
-                value={availableFrom}
-                onChange={(e) => setAvailableFrom(e.target.value)}
-              />
-            </label>
-            <label className="grid gap-1.5">
-              <span className="text-sm font-medium text-stone-foreground/80">Available Until</span>
-              <DateTimeInput
-                value={availableTo}
-                onChange={(e) => setAvailableTo(e.target.value)}
-              />
-            </label>
-          </div>
-
-          <label className="grid gap-1.5">
-            <span className="text-sm font-medium text-stone-foreground/80">Total Points</span>
-            <input
-              type="number"
-              className="teacher-input w-full sm:w-40"
-              value={totalPoints}
-              onChange={(e) => setTotalPoints(e.target.value)}
-              min={0}
-              placeholder="e.g. 100"
-            />
-          </label>
-
-          {sections.length > 0 && (
-            <div className="grid gap-1.5">
-              <span className="text-sm font-medium text-stone-foreground/80">Assign to Classes</span>
-              <div className="grid gap-2 rounded-xl border border-primary/10 bg-black/20 p-3">
-                {sections.map((section) => (
-                  <label key={section.id} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={sectionIds.includes(section.id)}
-                      onChange={() => toggleSection(section.id)}
-                      className="h-4 w-4 accent-primary"
-                    />
-                    {section.name}
-                  </label>
-                ))}
-              </div>
+        {sections.length > 0 && (
+          <div className="grid gap-1.5">
+            <span className="text-sm font-medium text-stone-foreground/80">Assign to Classes</span>
+            <div className="grid gap-2 rounded-xl border border-primary/10 bg-black/20 p-3">
+              {sections.map((section) => (
+                <label key={section.id} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={sectionIds.includes(section.id)}
+                    onChange={() => toggleSection(section.id)}
+                    className="h-4 w-4 accent-primary"
+                  />
+                  {section.name}
+                </label>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {children}
-        </div>
+        {children}
+      </div>
 
-        <div className="mt-6 flex justify-end gap-3">
-          <button type="button" className="btn-game btn-stone text-sm" onClick={onCancel}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="btn-game text-sm"
-            onClick={() => void handleSave()}
-            disabled={saving}
-          >
-            {saving ? "Saving..." : "Save"}
-          </button>
-        </div>
-      </section>
+      <div className="mt-6 flex justify-end gap-3">
+        <button type="button" className="btn-game btn-stone text-sm" onClick={onCancel}>
+          Cancel
+        </button>
+        <button
+          type="button"
+          className="btn-game text-sm"
+          onClick={() => void handleSave()}
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save"}
+        </button>
+      </div>
+    </>
+  );
+
+  if (variant === "page") {
+    return <section className="teacher-card mx-auto w-full max-w-4xl p-5">{formContent}</section>;
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 grid place-items-center overflow-y-auto bg-black/70 px-4 py-8">
+      <section className="teacher-card w-full max-w-2xl p-5">{formContent}</section>
     </div>
   );
 }
