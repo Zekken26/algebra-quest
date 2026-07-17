@@ -1,5 +1,5 @@
 import "mathlive/static.css";
-import { createElement, useEffect, useRef, useState } from "react";
+import { createElement, useEffect, useState } from "react";
 
 type MathInputProps = {
   value: string;
@@ -11,7 +11,6 @@ type MathInputProps = {
 };
 
 export function MathInput({ value, onChange, placeholder, className, disabled, mathMode = true }: MathInputProps) {
-  const ref = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -24,22 +23,10 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     };
   }, []);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !ready) return;
-    if ((el as any).value !== value) {
-      (el as any).value = value;
-    }
-    const handler = () => {
-      onChange((el as any).value);
-    };
-    el.addEventListener("input", handler);
-    return () => el.removeEventListener("input", handler);
-  }, [ready, value, onChange, mathMode]);
-
   if (!mathMode) {
     return (
       <textarea
+        key="text"
         className={className}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -52,6 +39,7 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
   if (!ready) {
     return (
       <input
+        key="fallback"
         className={className}
         type="text"
         value={value}
@@ -63,9 +51,11 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
   }
 
   return createElement("math-field", {
-    ref,
+    key: "math",
     className,
     disabled,
     placeholder: placeholder ?? "",
+    value,
+    onInput: (e: any) => onChange((e.target as any).value ?? ""),
   });
 }
