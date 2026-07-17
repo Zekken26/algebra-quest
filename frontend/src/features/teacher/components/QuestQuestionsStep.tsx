@@ -188,7 +188,7 @@ export function QuestQuestionsStep({
                 </div>
               </div>
 
-              <label className="grid gap-2">
+              <div className="grid gap-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-semibold text-stone-foreground/80">Equation</span>
                   <div className="flex items-center gap-2">
@@ -247,7 +247,7 @@ export function QuestQuestionsStep({
                     )}
                   </div>
                 ) : null}
-              </label>
+              </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 {question.choices.map((choice, choiceIndex) => (

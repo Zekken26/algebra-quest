@@ -180,7 +180,7 @@ export function QuestionBuilder({
               </label>
             </div>
 
-            <label className="grid gap-1">
+            <div className="grid gap-1">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-stone-foreground/60">Question</span>
                 <div className="flex gap-0.5 rounded-full bg-stone-foreground/10 p-0.5">
@@ -215,7 +215,7 @@ export function QuestionBuilder({
                 onChange={(v) => updateQuestion(index, { equation: v })}
                 mathMode={!textMode[index]}
               />
-            </label>
+            </div>
             {question.equation && (
               <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
                 <span className="block text-xs font-semibold text-stone-foreground/60 mb-1">Preview</span>

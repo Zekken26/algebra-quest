@@ -44,6 +44,10 @@ export const MathInput = memo(function MathInput({ value, onChange, placeholder,
     };
     el.addEventListener("input", onInput);
 
+    requestAnimationFrame(() => {
+      el?.focus();
+    });
+
     return () => {
       console.log("[MathInput] CLEANUP — removing listener (element will be recreated)");
       el.removeEventListener("input", onInput);
