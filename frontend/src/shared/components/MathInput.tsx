@@ -44,15 +44,15 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
 
     const onFocus = () => { isFocusedRef.current = true; };
     const onBlur = () => { isFocusedRef.current = false; };
-    el.addEventListener("focus", onFocus);
-    el.addEventListener("blur", onBlur);
+    el.addEventListener("focusin", onFocus);
+    el.addEventListener("focusout", onBlur);
 
     el.focus();
 
     return () => {
       el.removeEventListener("input", onInput);
-      el.removeEventListener("focus", onFocus);
-      el.removeEventListener("blur", onBlur);
+      el.removeEventListener("focusin", onFocus);
+      el.removeEventListener("focusout", onBlur);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showMathField]);
