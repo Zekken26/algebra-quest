@@ -14,7 +14,7 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
   const ref = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
   const onChangeRef = useRef(onChange);
-  const isFocusedRef = useRef(false);
+  const wasUserInputRef = useRef(false);
 
   useEffect(() => {
     onChangeRef.current = onChange;
@@ -38,21 +38,15 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     (el as any).value = value;
 
     const onInput = () => {
+      wasUserInputRef.current = true;
       onChangeRef.current((el as any).value ?? "");
     };
     el.addEventListener("input", onInput);
-
-    const onFocus = () => { isFocusedRef.current = true; };
-    const onBlur = () => { isFocusedRef.current = false; };
-    el.addEventListener("focusin", onFocus);
-    el.addEventListener("focusout", onBlur);
 
     el.focus();
 
     return () => {
       el.removeEventListener("input", onInput);
-      el.removeEventListener("focusin", onFocus);
-      el.removeEventListener("focusout", onBlur);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showMathField]);
@@ -60,7 +54,10 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
   useEffect(() => {
     const el = ref.current;
     if (!el || !showMathField) return;
-    if (isFocusedRef.current) return;
+    if (wasUserInputRef.current) {
+      wasUserInputRef.current = false;
+      return;
+    }
     if ((el as any).value !== value) {
       (el as any).value = value;
     }
