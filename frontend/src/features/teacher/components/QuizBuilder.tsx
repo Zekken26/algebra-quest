@@ -68,7 +68,11 @@ export function QuizBuilder({ disabled, onAddQuestion }: QuizBuilderProps) {
         {equation ? (
           <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
             <span className="text-xs font-semibold text-stone-foreground/60 block mb-1">Preview</span>
-            <MathRenderer latex={equation} displayMode />
+            {!mathMode ? (
+              <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{equation}</p>
+            ) : (
+              <MathRenderer latex={equation} displayMode />
+            )}
           </div>
         ) : null}
         <div className="grid gap-3 sm:grid-cols-2">

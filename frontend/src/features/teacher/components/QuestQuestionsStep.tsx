@@ -221,7 +221,11 @@ export function QuestQuestionsStep({
                 {question.equation ? (
                   <div className="mt-2 rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
                     <span className="text-xs font-semibold text-stone-foreground/60 block mb-1">Preview</span>
-                    <MathRenderer latex={question.equation} displayMode />
+                    {textMode[questionIndex] ? (
+                      <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{question.equation}</p>
+                    ) : (
+                      <MathRenderer latex={question.equation} displayMode />
+                    )}
                   </div>
                 ) : null}
               </label>

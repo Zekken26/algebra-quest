@@ -205,7 +205,11 @@ export function QuestionBuilder({
             {question.equation && (
               <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
                 <span className="block text-xs font-semibold text-stone-foreground/60 mb-1">Preview</span>
-                <MathRenderer latex={question.equation} displayMode />
+                {textMode[index] ? (
+                  <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{question.equation}</p>
+                ) : (
+                  <MathRenderer latex={question.equation} displayMode />
+                )}
               </div>
             )}
 
