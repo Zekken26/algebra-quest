@@ -1,5 +1,5 @@
 import "mathlive/static.css";
-import { createElement, useEffect, useRef, useState } from "react";
+import { createElement, useEffect, useRef, useState, memo } from "react";
 
 type MathInputProps = {
   value: string;
@@ -10,7 +10,7 @@ type MathInputProps = {
   mathMode?: boolean;
 };
 
-export function MathInput({ value, onChange, placeholder, className, disabled, mathMode = true }: MathInputProps) {
+export const MathInput = memo(function MathInput({ value, onChange, placeholder, className, disabled, mathMode = true }: MathInputProps) {
   const ref = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
   const onChangeRef = useRef(onChange);
@@ -64,6 +64,19 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     }
   }, [value, showMathField]);
 
+  useEffect(() => {
+    if (!showMathField) return;
+    const el = ref.current;
+    if (!el) return;
+
+    const onKeyboardToggle = () => {
+      requestAnimationFrame(() => el?.focus());
+    };
+
+    el.addEventListener("virtual-keyboard-toggle", onKeyboardToggle);
+    return () => el.removeEventListener("virtual-keyboard-toggle", onKeyboardToggle);
+  }, [showMathField]);
+
   if (!mathMode) {
     return (
       <textarea
@@ -90,10 +103,17 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
   }
 
   return createElement("math-field", {
+    key: "math-field",
     ref,
     className,
     disabled,
     placeholder: placeholder ?? "",
     "math-virtual-keyboard-policy": "manual",
   });
-}
+}, (prev, next) => {
+  return prev.value === next.value
+    && prev.mathMode === next.mathMode
+    && prev.disabled === next.disabled
+    && prev.className === next.className
+    && prev.placeholder === next.placeholder;
+});
