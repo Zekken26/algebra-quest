@@ -14,44 +14,71 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
   const ref = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  const isFocusedRef = useRef(false);
+
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   useEffect(() => {
     let mounted = true;
     import("mathlive").then(() => {
       if (mounted) setReady(true);
     });
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
+  const showMathField = mathMode && ready;
+
   useEffect(() => {
+    if (!showMathField) return;
     const el = ref.current;
     if (!el) return;
-    const handler = () => {
+
+    (el as any).value = value;
+
+    const onInput = () => {
       onChangeRef.current((el as any).value ?? "");
     };
-    el.addEventListener("input", handler);
-    return () => el.removeEventListener("input", handler);
-  }, [ready]);
+    el.addEventListener("input", onInput);
+
+    const onFocus = () => { isFocusedRef.current = true; };
+    const onBlur = () => { isFocusedRef.current = false; };
+    el.addEventListener("focus", onFocus);
+    el.addEventListener("blur", onBlur);
+
+    el.focus();
+
+    return () => {
+      el.removeEventListener("input", onInput);
+      el.removeEventListener("focus", onFocus);
+      el.removeEventListener("blur", onBlur);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showMathField]);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
-    if (document.activeElement === el) return;
+    if (!el || !showMathField) return;
+    if (isFocusedRef.current) return;
     if ((el as any).value !== value) {
       (el as any).value = value;
     }
-  });
+  }, [value, showMathField]);
 
-  useEffect(() => {
-    if (mathMode && ready && ref.current) {
-      ref.current.focus();
-    }
-  }, [mathMode, ready]);
+  if (!mathMode) {
+    return (
+      <textarea
+        className={className}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+      />
+    );
+  }
 
-  if (mathMode && !ready) {
+  if (!ready) {
     return (
       <input
         className={className}
@@ -64,23 +91,10 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     );
   }
 
-  return (
-    <>
-      <textarea
-        className={className}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        style={{ display: mathMode ? "none" : undefined }}
-      />
-      {ready && createElement("math-field", {
-        ref,
-        className,
-        disabled,
-        placeholder: placeholder ?? "",
-        style: { display: mathMode ? undefined : "none" },
-      })}
-    </>
-  );
+  return createElement("math-field", {
+    ref,
+    className,
+    disabled,
+    placeholder: placeholder ?? "",
+  });
 }
