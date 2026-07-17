@@ -1,5 +1,5 @@
 import "mathlive/static.css";
-import { createElement, useEffect, useState } from "react";
+import { createElement, useEffect, useRef, useState } from "react";
 
 type MathInputProps = {
   value: string;
@@ -11,7 +11,10 @@ type MathInputProps = {
 };
 
 export function MathInput({ value, onChange, placeholder, className, disabled, mathMode = true }: MathInputProps) {
+  const ref = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
+  const onChangeRef = useRef(onChange);
+  onChangeRef.current = onChange;
 
   useEffect(() => {
     let mounted = true;
@@ -23,23 +26,34 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     };
   }, []);
 
-  if (!mathMode) {
-    return (
-      <textarea
-        key="text"
-        className={className}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-      />
-    );
-  }
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const handler = () => {
+      onChangeRef.current((el as any).value ?? "");
+    };
+    el.addEventListener("input", handler);
+    return () => el.removeEventListener("input", handler);
+  }, [ready]);
 
-  if (!ready) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    if (document.activeElement === el) return;
+    if ((el as any).value !== value) {
+      (el as any).value = value;
+    }
+  });
+
+  useEffect(() => {
+    if (mathMode && ready && ref.current) {
+      ref.current.focus();
+    }
+  }, [mathMode, ready]);
+
+  if (mathMode && !ready) {
     return (
       <input
-        key="fallback"
         className={className}
         type="text"
         value={value}
@@ -50,12 +64,23 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     );
   }
 
-  return createElement("math-field", {
-    key: "math",
-    className,
-    disabled,
-    placeholder: placeholder ?? "",
-    value,
-    onInput: (e: any) => onChange((e.target as any).value ?? ""),
-  });
+  return (
+    <>
+      <textarea
+        className={className}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        style={{ display: mathMode ? "none" : undefined }}
+      />
+      {ready && createElement("math-field", {
+        ref,
+        className,
+        disabled,
+        placeholder: placeholder ?? "",
+        style: { display: mathMode ? undefined : "none" },
+      })}
+    </>
+  );
 }
