@@ -193,12 +193,21 @@ export async function getStudentActivities(studentId: string, sectionId: string,
     select: { id: true, status: true },
   });
 
+  console.log("[getStudentActivities]", {
+    studentId,
+    sectionId,
+    enrollmentFound: !!enrollment,
+    enrollmentStatus: enrollment?.status,
+  });
+
   if (!enrollment || enrollment.status !== "ACTIVE") {
     throw new AppError("You are not enrolled in this section.", 403, "NOT_ENROLLED");
   }
 
   const where: Prisma.ActivityWhereInput = { sectionId, isPublished: true };
   if (type) where.type = type as ActivityType;
+
+  console.log("[getStudentActivities] query where:", where);
 
   const activities = await prisma.activity.findMany({
     where,
@@ -225,6 +234,8 @@ export async function getStudentActivities(studentId: string, sectionId: string,
     },
     orderBy: { orderIndex: "asc" },
   });
+
+  console.log("[getStudentActivities] found activities:", activities.length, activities.map(a => ({ id: a.id, type: a.type, isPublished: a.isPublished, sectionId: a.sectionId, contentId: a.contentId })));
 
   return activities;
 }
