@@ -49,6 +49,19 @@ export function QuestionBuilder({
   disabled,
 }: QuestionBuilderProps) {
   const filteredTypes = allowedTypes.filter((t) => defaultTypes.includes(t));
+  const [textMode, setTextMode] = useState<Record<number, boolean>>({});
+
+  const toggleMathMode = (index: number) => {
+    setTextMode((prev) => {
+      const next = { ...prev };
+      if (next[index]) {
+        delete next[index];
+      } else {
+        next[index] = true;
+      }
+      return next;
+    });
+  };
 
   const addQuestion = () => {
     const newQuestion: QuestionData = {
@@ -167,12 +180,26 @@ export function QuestionBuilder({
             </div>
 
             <label className="grid gap-1">
-              <span className="text-xs text-stone-foreground/60">Question</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-stone-foreground/60">Question</span>
+                <button
+                  type="button"
+                  onClick={() => toggleMathMode(index)}
+                  className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
+                    textMode[index]
+                      ? "bg-primary/20 text-primary border border-primary/30"
+                      : "bg-stone-foreground/10 text-stone-foreground/60 border border-transparent"
+                  }`}
+                >
+                  {textMode[index] ? "Text" : "Math"}
+                </button>
+              </div>
               <MathInput
                 className="teacher-input"
                 placeholder="Enter the question..."
                 value={question.equation}
                 onChange={(v) => updateQuestion(index, { equation: v })}
+                mathMode={!textMode[index]}
               />
             </label>
             {question.equation && (

@@ -44,6 +44,19 @@ export function QuestQuestionsStep({
   const [uploadingMap, setUploadingMap] = useState<Record<number, boolean>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeUploadIndex, setActiveUploadIndex] = useState<number | null>(null);
+  const [textMode, setTextMode] = useState<Record<number, boolean>>({});
+
+  const toggleMathMode = (questionIndex: number) => {
+    setTextMode((prev) => {
+      const next = { ...prev };
+      if (next[questionIndex]) {
+        delete next[questionIndex];
+      } else {
+        next[questionIndex] = true;
+      }
+      return next;
+    });
+  };
 
   const triggerUpload = (index: number) => {
     setActiveUploadIndex(index);
@@ -177,11 +190,24 @@ export function QuestQuestionsStep({
               <label className="grid gap-2">
                 <div className="flex justify-between items-center">
                   <span className="text-sm font-semibold text-stone-foreground/80">Equation</span>
-                  {hasImage && (
-                    <span className="text-xs text-accent/80 font-normal">
-                      Optional (Image provided)
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {hasImage && (
+                      <span className="text-xs text-accent/80 font-normal">
+                        Optional (Image provided)
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => toggleMathMode(questionIndex)}
+                      className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
+                        textMode[questionIndex]
+                          ? "bg-primary/20 text-primary border border-primary/30"
+                          : "bg-stone-foreground/10 text-stone-foreground/60 border border-transparent"
+                      }`}
+                    >
+                      {textMode[questionIndex] ? "Text" : "Math"}
+                    </button>
+                  </div>
                 </div>
                 <MathInput
                   className="teacher-input"
@@ -190,6 +216,7 @@ export function QuestQuestionsStep({
                     onQuestionChange(questionIndex, { equation: value })
                   }
                   placeholder="2x + 5 = 15"
+                  mathMode={!textMode[questionIndex]}
                 />
                 {question.equation ? (
                   <div className="mt-2 rounded-xl border border-primary/10 bg-black/20 p-3 text-center">

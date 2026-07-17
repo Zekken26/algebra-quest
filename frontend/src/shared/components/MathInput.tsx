@@ -7,9 +7,10 @@ type MathInputProps = {
   placeholder?: string;
   className?: string;
   disabled?: boolean;
+  mathMode?: boolean;
 };
 
-export function MathInput({ value, onChange, placeholder, className, disabled }: MathInputProps) {
+export function MathInput({ value, onChange, placeholder, className, disabled, mathMode = true }: MathInputProps) {
   const ref = useRef<HTMLElement>(null);
   const [ready, setReady] = useState(false);
 
@@ -35,6 +36,18 @@ export function MathInput({ value, onChange, placeholder, className, disabled }:
     el.addEventListener("input", handler);
     return () => el.removeEventListener("input", handler);
   }, [ready, value, onChange]);
+
+  if (!mathMode) {
+    return (
+      <textarea
+        className={className}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+      />
+    );
+  }
 
   if (!ready) {
     return (

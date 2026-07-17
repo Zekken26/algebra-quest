@@ -19,6 +19,7 @@ export function QuizBuilder({ disabled, onAddQuestion }: QuizBuilderProps) {
   const [choices, setChoices] = useState(["", "", "", ""]);
   const [explanation, setExplanation] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [mathMode, setMathMode] = useState(true);
 
   const submit = async () => {
     setSubmitting(true);
@@ -43,11 +44,26 @@ export function QuizBuilder({ disabled, onAddQuestion }: QuizBuilderProps) {
     <section className="teacher-card p-5">
       <h2 className="font-display text-xl text-primary">Quiz Builder</h2>
       <div className="mt-4 grid gap-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-stone-foreground/60">Question</span>
+          <button
+            type="button"
+            onClick={() => setMathMode((m) => !m)}
+            className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
+              !mathMode
+                ? "bg-primary/20 text-primary border border-primary/30"
+                : "bg-stone-foreground/10 text-stone-foreground/60 border border-transparent"
+            }`}
+          >
+            {mathMode ? "Math" : "Text"}
+          </button>
+        </div>
         <MathInput
           className="teacher-input"
           placeholder="Question prompt, e.g. 2x + 5 = 15"
           value={equation}
           onChange={setEquation}
+          mathMode={mathMode}
         />
         {equation ? (
           <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
