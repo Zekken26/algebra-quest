@@ -81,7 +81,7 @@ export function ModuleActivityForm({
         availableFrom: availableFrom ? new Date(availableFrom).toISOString() : null,
         availableTo: availableTo ? new Date(availableTo).toISOString() : null,
         totalPoints: totalPoints ? parseInt(totalPoints, 10) : null,
-        isPublished: initial?.isPublished ?? false,
+        isPublished: initial?.isPublished ?? true,
         sectionIds,
       });
     } finally {
