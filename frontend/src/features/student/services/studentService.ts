@@ -47,7 +47,8 @@ export type StudentClass = {
   status?: string;
   grade?: number | null;
   teacher?: { id?: string; name: string };
-  _count?: { questGuides?: number; quests?: number };
+  _count?: { questGuides: number; quests: number };
+  contentCounts?: Record<string, number>;
 };
 
 export type StudentEnrollmentStatus = {

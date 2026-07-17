@@ -47,6 +47,32 @@ export async function getStudentDashboard(studentId: string) {
 
   const completedQuests = progress.filter((item) => item.questCompleted).length;
   const activeSections = student?.studentSections ?? [];
+  const sectionIds = activeSections.map((e) => e.section.id);
+
+  const [questCounts, guideCounts, contentCounts] = await Promise.all([
+    prisma.quest.groupBy({
+      by: ["sectionId"],
+      where: { sectionId: { in: sectionIds }, isPublished: true },
+      _count: { id: true },
+    }),
+    prisma.questGuide.groupBy({
+      by: ["sectionId"],
+      where: { sectionId: { in: sectionIds } },
+      _count: { id: true },
+    }),
+    prisma.classContent.groupBy({
+      by: ["sectionId", "type"],
+      where: { sectionId: { in: sectionIds }, isPublished: true },
+      _count: { id: true },
+    }),
+  ]);
+
+  const questCountMap = Object.fromEntries(questCounts.map((r) => [r.sectionId, r._count.id]));
+  const guideCountMap = Object.fromEntries(guideCounts.map((r) => [r.sectionId, r._count.id]));
+  const contentCountMap: Record<string, Record<string, number>> = {};
+  for (const row of contentCounts) {
+    (contentCountMap[row.sectionId] ??= {})[row.type] = row._count.id;
+  }
 
   return {
     student,
@@ -57,6 +83,11 @@ export async function getStudentDashboard(studentId: string) {
         joinedAt: enrollment.joinedAt,
         status: enrollment.status,
         grade: enrollment.grade ?? null,
+        _count: {
+          questGuides: guideCountMap[enrollment.section.id] ?? 0,
+          quests: questCountMap[enrollment.section.id] ?? 0,
+        },
+        contentCounts: contentCountMap[enrollment.section.id] ?? {},
       })),
     },
     stats: {

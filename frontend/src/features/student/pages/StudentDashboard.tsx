@@ -168,6 +168,24 @@ export function StudentDashboard() {
                       </p>
                       <p className="text-xs text-stone-foreground/60">Quests</p>
                     </div>
+                    <div className="rounded-xl bg-black/20 p-3">
+                      <p className="font-display text-xl text-primary">
+                        {classItem.contentCounts?.ASSIGNMENT ?? 0}
+                      </p>
+                      <p className="text-xs text-stone-foreground/60">Assignments</p>
+                    </div>
+                    <div className="rounded-xl bg-black/20 p-3">
+                      <p className="font-display text-xl text-primary">
+                        {classItem.contentCounts?.PRETEST ?? 0}
+                      </p>
+                      <p className="text-xs text-stone-foreground/60">Pre-Tests</p>
+                    </div>
+                    <div className="rounded-xl bg-black/20 p-3">
+                      <p className="font-display text-xl text-primary">
+                        {classItem.contentCounts?.ASSESSMENT ?? 0}
+                      </p>
+                      <p className="text-xs text-stone-foreground/60">Assessments</p>
+                    </div>
                   </div>
                   <button
                     type="button"
