@@ -34,6 +34,7 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     if (!showMathField) return;
     const el = ref.current;
     if (!el) return;
+    console.log("[MathInput] SETUP effect running — adding listener");
 
     (el as any).value = value;
 
@@ -43,9 +44,8 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     };
     el.addEventListener("input", onInput);
 
-    el.focus();
-
     return () => {
+      console.log("[MathInput] CLEANUP — removing listener (element will be recreated)");
       el.removeEventListener("input", onInput);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -59,6 +59,7 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
       return;
     }
     if ((el as any).value !== value) {
+      console.log("[MathInput] SYNC effect — setting value externally", { before: (el as any).value, after: value });
       (el as any).value = value;
     }
   }, [value, showMathField]);
@@ -93,5 +94,6 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     className,
     disabled,
     placeholder: placeholder ?? "",
+    "math-virtual-keyboard-policy": "manual",
   });
 }
