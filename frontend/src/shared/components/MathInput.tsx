@@ -35,7 +35,7 @@ export function MathInput({ value, onChange, placeholder, className, disabled, m
     };
     el.addEventListener("input", handler);
     return () => el.removeEventListener("input", handler);
-  }, [ready, value, onChange]);
+  }, [ready, value, onChange, mathMode]);
 
   if (!mathMode) {
     return (
