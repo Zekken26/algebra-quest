@@ -68,11 +68,6 @@ export function StudentClassPage({ classId }: StudentClassPageProps) {
         fetchStudentDashboard(),
         fetchStudentClassActivities(classId),
       ]);
-    console.log("[StudentClassPage] classId:", classId);
-    console.log("[StudentClassPage] nextClass:", nextClass);
-    console.log("[StudentClassPage] guides:", nextGuides?.length);
-    console.log("[StudentClassPage] quests:", nextQuests?.length);
-    console.log("[StudentClassPage] activities:", nextActivities?.activities?.length, JSON.stringify(nextActivities?.activities?.map(a => ({ id: a.id, type: a.type, title: a.title, contentId: a.content?.id }))));
     setProgress(toStudentProgressFromDashboard(dashboard, progress));
     setClassInfo(nextClass);
     setGuides(nextGuides);
