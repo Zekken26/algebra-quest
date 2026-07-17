@@ -46,17 +46,30 @@ export function GameQuestionBuilder({ disabled, onAddQuestion }: GameQuestionBui
       <div className="mt-4 grid gap-3">
         <div className="flex items-center justify-between">
           <span className="text-xs text-stone-foreground/60">Question</span>
-          <button
-            type="button"
-            onClick={() => setMathMode((m) => !m)}
-            className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
-              !mathMode
-                ? "bg-primary/20 text-primary border border-primary/30"
-                : "bg-stone-foreground/10 text-stone-foreground/60 border border-transparent"
-            }`}
-          >
-            {mathMode ? "Math" : "Text"}
-          </button>
+          <div className="flex gap-0.5 rounded-full bg-stone-foreground/10 p-0.5">
+            <button
+              type="button"
+              onClick={() => setMathMode(true)}
+              className={`text-xs px-2.5 py-0.5 rounded-full transition-colors ${
+                mathMode
+                  ? "bg-primary/20 text-primary"
+                  : "text-stone-foreground/60 hover:text-stone-foreground/80"
+              }`}
+            >
+              Math
+            </button>
+            <button
+              type="button"
+              onClick={() => setMathMode(false)}
+              className={`text-xs px-2.5 py-0.5 rounded-full transition-colors ${
+                !mathMode
+                  ? "bg-primary/20 text-primary"
+                  : "text-stone-foreground/60 hover:text-stone-foreground/80"
+              }`}
+            >
+              Text
+            </button>
+          </div>
         </div>
         <MathInput
           className="teacher-input"
@@ -69,7 +82,12 @@ export function GameQuestionBuilder({ disabled, onAddQuestion }: GameQuestionBui
           <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
             <span className="text-xs font-semibold text-stone-foreground/60 block mb-1">Preview</span>
             {!mathMode ? (
-              <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{equation}</p>
+              <>
+                <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{equation}</p>
+                {!equation.includes(" ") && equation.length > 3 && (
+                  <p className="text-xs text-amber-400/70 mt-1">No spaces — re-type in Text mode to preserve them.</p>
+                )}
+              </>
             ) : (
               <MathRenderer latex={equation} displayMode />
             )}

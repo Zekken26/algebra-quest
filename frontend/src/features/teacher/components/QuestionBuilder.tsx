@@ -51,13 +51,14 @@ export function QuestionBuilder({
   const filteredTypes = allowedTypes.filter((t) => defaultTypes.includes(t));
   const [textMode, setTextMode] = useState<Record<number, boolean>>({});
 
-  const toggleMathMode = (index: number) => {
+  const setMathMode = (index: number, mode: boolean) => {
     setTextMode((prev) => {
+      if (mode === !!prev[index]) return prev;
       const next = { ...prev };
-      if (next[index]) {
-        delete next[index];
-      } else {
+      if (mode) {
         next[index] = true;
+      } else {
+        delete next[index];
       }
       return next;
     });
@@ -182,17 +183,30 @@ export function QuestionBuilder({
             <label className="grid gap-1">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-stone-foreground/60">Question</span>
-                <button
-                  type="button"
-                  onClick={() => toggleMathMode(index)}
-                  className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
-                    textMode[index]
-                      ? "bg-primary/20 text-primary border border-primary/30"
-                      : "bg-stone-foreground/10 text-stone-foreground/60 border border-transparent"
-                  }`}
-                >
-                  {textMode[index] ? "Text" : "Math"}
-                </button>
+                <div className="flex gap-0.5 rounded-full bg-stone-foreground/10 p-0.5">
+                  <button
+                    type="button"
+                    onClick={() => setMathMode(index, false)}
+                    className={`text-xs px-2.5 py-0.5 rounded-full transition-colors ${
+                      !textMode[index]
+                        ? "bg-primary/20 text-primary"
+                        : "text-stone-foreground/60 hover:text-stone-foreground/80"
+                    }`}
+                  >
+                    Math
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMathMode(index, true)}
+                    className={`text-xs px-2.5 py-0.5 rounded-full transition-colors ${
+                      textMode[index]
+                        ? "bg-primary/20 text-primary"
+                        : "text-stone-foreground/60 hover:text-stone-foreground/80"
+                    }`}
+                  >
+                    Text
+                  </button>
+                </div>
               </div>
               <MathInput
                 className="teacher-input"
@@ -206,7 +220,12 @@ export function QuestionBuilder({
               <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
                 <span className="block text-xs font-semibold text-stone-foreground/60 mb-1">Preview</span>
                 {textMode[index] ? (
-                  <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{question.equation}</p>
+                  <>
+                    <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{question.equation}</p>
+                    {!question.equation.includes(" ") && question.equation.length > 3 && (
+                      <p className="text-xs text-amber-400/70 mt-1">No spaces — re-type in Text mode to preserve them.</p>
+                    )}
+                  </>
                 ) : (
                   <MathRenderer latex={question.equation} displayMode />
                 )}

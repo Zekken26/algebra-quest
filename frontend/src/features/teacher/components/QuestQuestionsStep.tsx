@@ -46,13 +46,14 @@ export function QuestQuestionsStep({
   const [activeUploadIndex, setActiveUploadIndex] = useState<number | null>(null);
   const [textMode, setTextMode] = useState<Record<number, boolean>>({});
 
-  const toggleMathMode = (questionIndex: number) => {
+  const setMathMode = (questionIndex: number, mode: boolean) => {
     setTextMode((prev) => {
+      if (mode === !!prev[questionIndex]) return prev;
       const next = { ...prev };
-      if (next[questionIndex]) {
-        delete next[questionIndex];
-      } else {
+      if (mode) {
         next[questionIndex] = true;
+      } else {
+        delete next[questionIndex];
       }
       return next;
     });
@@ -196,17 +197,30 @@ export function QuestQuestionsStep({
                         Optional (Image provided)
                       </span>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => toggleMathMode(questionIndex)}
-                      className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
-                        textMode[questionIndex]
-                          ? "bg-primary/20 text-primary border border-primary/30"
-                          : "bg-stone-foreground/10 text-stone-foreground/60 border border-transparent"
-                      }`}
-                    >
-                      {textMode[questionIndex] ? "Text" : "Math"}
-                    </button>
+                    <div className="flex gap-0.5 rounded-full bg-stone-foreground/10 p-0.5">
+                      <button
+                        type="button"
+                        onClick={() => setMathMode(questionIndex, false)}
+                        className={`text-xs px-2.5 py-0.5 rounded-full transition-colors ${
+                          !textMode[questionIndex]
+                            ? "bg-primary/20 text-primary"
+                            : "text-stone-foreground/60 hover:text-stone-foreground/80"
+                        }`}
+                      >
+                        Math
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMathMode(questionIndex, true)}
+                        className={`text-xs px-2.5 py-0.5 rounded-full transition-colors ${
+                          textMode[questionIndex]
+                            ? "bg-primary/20 text-primary"
+                            : "text-stone-foreground/60 hover:text-stone-foreground/80"
+                        }`}
+                      >
+                        Text
+                      </button>
+                    </div>
                   </div>
                 </div>
                 <MathInput
@@ -222,7 +236,12 @@ export function QuestQuestionsStep({
                   <div className="mt-2 rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
                     <span className="text-xs font-semibold text-stone-foreground/60 block mb-1">Preview</span>
                     {textMode[questionIndex] ? (
-                      <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{question.equation}</p>
+                      <>
+                        <p className="text-sm text-stone-foreground/80 whitespace-pre-wrap">{question.equation}</p>
+                        {!question.equation.includes(" ") && question.equation.length > 3 && (
+                          <p className="text-xs text-amber-400/70 mt-1">No spaces — re-type in Text mode to preserve them.</p>
+                        )}
+                      </>
                     ) : (
                       <MathRenderer latex={question.equation} displayMode />
                     )}
