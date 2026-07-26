@@ -149,7 +149,7 @@ function LoginPage() {
 
   return (
     <ForestBackground>
-      <LandingNavbar />
+      <LandingNavbar mode={mode} onToggleMode={(m) => setMode(m)} />
       <main className="grid min-h-screen place-items-center px-4 pt-24 pb-8">
         <motion.section
           initial={{ opacity: 0, y: 18 }}
