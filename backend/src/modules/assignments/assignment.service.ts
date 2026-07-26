@@ -18,7 +18,6 @@ export async function createAssignment(
     availableFrom?: string | null;
     availableTo?: string | null;
     totalPoints?: number | null;
-    submissionType?: string;
     passingScore?: number | null;
     isPublished?: boolean;
     classId?: string | null;
@@ -49,7 +48,6 @@ export async function createAssignment(
         availableFrom: input.availableFrom ? new Date(input.availableFrom) : null,
         availableTo: input.availableTo ? new Date(input.availableTo) : null,
         maxScore: input.totalPoints ?? null,
-        submissionType: input.submissionType ?? null,
         passingScore: input.passingScore ?? null,
         isPublished: input.isPublished ?? false,
         teacherId,
@@ -139,7 +137,6 @@ export async function updateAssignment(
     availableFrom?: string | null;
     availableTo?: string | null;
     totalPoints?: number | null;
-    submissionType?: string;
     passingScore?: number | null;
     isPublished?: boolean;
     questions?: Array<{
@@ -188,7 +185,6 @@ export async function updateAssignment(
   if (input.availableFrom !== undefined) data.availableFrom = input.availableFrom ? new Date(input.availableFrom) : null;
   if (input.availableTo !== undefined) data.availableTo = input.availableTo ? new Date(input.availableTo) : null;
   if (input.totalPoints !== undefined) data.maxScore = input.totalPoints;
-  if (input.submissionType !== undefined) data.submissionType = input.submissionType;
   if (input.passingScore !== undefined) data.passingScore = input.passingScore;
   if (input.isPublished !== undefined) data.isPublished = input.isPublished;
 
@@ -248,7 +244,6 @@ export async function duplicateAssignment(teacherId: string, assignmentId: strin
     availableFrom: rest.availableFrom?.toISOString() ?? null,
     availableTo: rest.availableTo?.toISOString() ?? null,
     totalPoints: rest.maxScore,
-    submissionType: rest.submissionType,
     passingScore: rest.passingScore,
     isPublished: false,
     sectionId: rest.sectionId,

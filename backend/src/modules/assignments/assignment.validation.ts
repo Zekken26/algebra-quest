@@ -13,7 +13,6 @@ export const createAssignmentSchema = z.object({
   availableFrom: z.string().datetime().nullable().optional(),
   availableTo: z.string().datetime().nullable().optional(),
   totalPoints: z.coerce.number().int().nonnegative().max(10000).nullable().optional(),
-  submissionType: z.enum(["FILE_UPLOAD", "ESSAY", "SHORT_ANSWER", "MULTIPLE_CHOICE", "ATTACHMENTS"]).optional(),
   passingScore: z.coerce.number().int().nonnegative().nullable().optional(),
   isPublished: z.boolean().default(false),
   classId: z.string().trim().min(1).nullable().optional(),
@@ -37,7 +36,6 @@ export const updateAssignmentSchema = z.object({
   availableFrom: z.string().datetime().nullable().optional(),
   availableTo: z.string().datetime().nullable().optional(),
   totalPoints: z.coerce.number().int().nonnegative().max(10000).nullable().optional(),
-  submissionType: z.enum(["FILE_UPLOAD", "ESSAY", "SHORT_ANSWER", "MULTIPLE_CHOICE", "ATTACHMENTS"]).optional(),
   passingScore: z.coerce.number().int().nonnegative().nullable().optional(),
   isPublished: z.boolean().optional(),
   questions: z.array(z.object({

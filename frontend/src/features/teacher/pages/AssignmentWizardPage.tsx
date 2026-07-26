@@ -17,7 +17,6 @@ export function AssignmentWizardPage() {
   const [sections, setSections] = useState<TeacherSection[]>([]);
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<QuestionData[]>([]);
-  const [submissionType, setSubmissionType] = useState("MULTIPLE_CHOICE");
   const [passingScore, setPassingScore] = useState("");
 
   useEffect(() => {
@@ -56,7 +55,6 @@ export function AssignmentWizardPage() {
       availableFrom: data.availableFrom,
       availableTo: data.availableTo,
       totalPoints: data.totalPoints,
-      submissionType,
       passingScore: passingScore ? parseInt(passingScore, 10) : null,
       isPublished: data.isPublished,
       questions: questions.map((q) => ({
@@ -106,19 +104,6 @@ export function AssignmentWizardPage() {
         onCancel={goToModules}
       >
         <SettingsPanel title="Assignment Settings">
-          <SettingsField label="Submission Type">
-            <select
-              className="teacher-input"
-              value={submissionType}
-              onChange={(e) => setSubmissionType(e.target.value)}
-            >
-              <option value="MULTIPLE_CHOICE">Multiple Choice</option>
-              <option value="FILE_UPLOAD">File Upload</option>
-              <option value="ESSAY">Essay</option>
-              <option value="SHORT_ANSWER">Short Answer</option>
-              <option value="ATTACHMENTS">Attachments</option>
-            </select>
-          </SettingsField>
           <SettingsField label="Passing Score">
             <input
               type="number"

@@ -784,7 +784,6 @@ export async function togglePublishContent(contentId: string) {
 }
 
 export type AssignmentItem = ClassContentItem & {
-  submissionType?: string | null;
   passingScore?: number | null;
 };
 
@@ -821,7 +820,6 @@ export async function createAssignment(input: {
   availableFrom?: string | null;
   availableTo?: string | null;
   totalPoints?: number | null;
-  submissionType?: string;
   passingScore?: number | null;
   isPublished?: boolean;
   sectionId?: string | null;
@@ -852,7 +850,6 @@ export async function updateAssignment(
     availableFrom: string | null;
     availableTo: string | null;
     totalPoints: number | null;
-    submissionType: string;
     passingScore: number | null;
     isPublished: boolean;
     questions: Array<{

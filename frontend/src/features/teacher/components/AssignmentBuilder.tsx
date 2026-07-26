@@ -27,7 +27,6 @@ export function AssignmentBuilder() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sections, setSections] = useState<TeacherSection[]>([]);
   const [questions, setQuestions] = useState<QuestionData[]>([]);
-  const [submissionType, setSubmissionType] = useState<string>("MULTIPLE_CHOICE");
   const [passingScore, setPassingScore] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -70,7 +69,6 @@ export function AssignmentBuilder() {
         enumerationItems: undefined,
       })),
     );
-    setSubmissionType(assignment.submissionType ?? "MULTIPLE_CHOICE");
     setPassingScore(assignment.passingScore?.toString() ?? "");
     setShowForm(true);
   };
@@ -94,7 +92,6 @@ export function AssignmentBuilder() {
       availableFrom: data.availableFrom,
       availableTo: data.availableTo,
       totalPoints: data.totalPoints,
-      submissionType,
       passingScore: passingScore ? parseInt(passingScore, 10) : null,
       isPublished: data.isPublished,
       questions: questions.map((q) => ({
@@ -185,7 +182,6 @@ export function AssignmentBuilder() {
             { label: "Points", value: a.maxScore ?? "—" },
             { label: "Questions", value: a._count?.questions ?? a.questions?.length ?? 0 },
             { label: "Submissions", value: a._count?.attempts ?? 0 },
-            { label: "Type", value: a.submissionType ?? "—" },
           ],
         }))}
         onCreate={handleCreate}
@@ -220,10 +216,6 @@ export function AssignmentBuilder() {
                 <div className="rounded-xl border border-primary/10 bg-black/20 p-3">
                   <p className="text-xs text-stone-foreground/60">Total Points</p>
                   <p className="mt-0.5 text-sm text-primary">{selected.maxScore ?? "—"}</p>
-                </div>
-                <div className="rounded-xl border border-primary/10 bg-black/20 p-3">
-                  <p className="text-xs text-stone-foreground/60">Submission Type</p>
-                  <p className="mt-0.5 text-sm text-primary">{selected.submissionType ?? "—"}</p>
                 </div>
                 <div className="rounded-xl border border-primary/10 bg-black/20 p-3">
                   <p className="text-xs text-stone-foreground/60">Status</p>
@@ -280,19 +272,6 @@ export function AssignmentBuilder() {
           onCancel={() => { setShowForm(false); setEditingId(null); }}
         >
           <SettingsPanel title="Assignment Settings">
-            <SettingsField label="Submission Type">
-              <select
-                className="teacher-input"
-                value={submissionType}
-                onChange={(e) => setSubmissionType(e.target.value)}
-              >
-                <option value="MULTIPLE_CHOICE">Multiple Choice</option>
-                <option value="FILE_UPLOAD">File Upload</option>
-                <option value="ESSAY">Essay</option>
-                <option value="SHORT_ANSWER">Short Answer</option>
-                <option value="ATTACHMENTS">Attachments</option>
-              </select>
-            </SettingsField>
             <SettingsField label="Passing Score">
               <input
                 type="number"
