@@ -53,7 +53,7 @@ export function StudentContentPage({ contentId }: Props) {
       ]);
       setProgress(toStudentProgressFromDashboard(dashboard, progress));
       setContent(detail.content);
-      const existingAttempt = detail.content.attempts?.find((a) => !a.submittedAt);
+      const existingAttempt = detail.content.attempts?.find((a) => !a.completedAt);
       if (existingAttempt) {
         setAttemptId(existingAttempt.id);
         setFinished(false);
@@ -74,7 +74,7 @@ export function StudentContentPage({ contentId }: Props) {
   const currentQuestion = questions[currentQuestionIndex];
   const isLast = currentQuestionIndex >= questions.length - 1;
 
-  const completedAttempt = content?.attempts?.find((a) => a.submittedAt);
+  const completedAttempt = content?.attempts?.find((a) => a.completedAt);
   const hasCompleted = !!completedAttempt;
 
   const startAttempt = async () => {
@@ -125,6 +125,20 @@ export function StudentContentPage({ contentId }: Props) {
     }
   };
 
+  const markAsCompleted = async () => {
+    setSubmitting(true);
+    try {
+      await startStudentContentAttempt(contentId);
+      const result = await submitStudentContentAttempt(contentId);
+      setFinalScore(result);
+      setFinished(true);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to complete.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   if (loading) {
     return (
       <ForestBackground>
@@ -168,7 +182,7 @@ export function StudentContentPage({ contentId }: Props) {
             <CheckCircle2 className="mx-auto mb-3 h-12 w-12 text-success" />
             <h2 className="font-display text-2xl text-primary">Completed</h2>
             <p className="mt-2 text-stone-foreground/70">
-              Score: {completedAttempt.score}/{completedAttempt.totalScore}
+              Score: {completedAttempt.score}/{completedAttempt.maxScore}
             </p>
             <Link to="/student" className="btn-game btn-stone mx-auto mt-4 inline-flex text-sm">
               Back to Dashboard
@@ -212,15 +226,55 @@ export function StudentContentPage({ contentId }: Props) {
           </section>
         ) : !attemptId ? (
           <section className="quest-panel p-6 text-center">
+            {questions.length > 0 ? (
+              <>
+                <p className="mb-4 text-stone-foreground/70">
+                  {questions.length} question{questions.length !== 1 ? "s" : ""}
+                </p>
+                <button
+                  type="button"
+                  className="btn-game text-sm"
+                  onClick={() => void startAttempt()}
+                >
+                  Start {TYPE_LABELS[content.type]}
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="mb-4 text-stone-foreground/70">
+                  This {TYPE_LABELS[content.type].toLowerCase()} has no questions. Click below to mark it as completed.
+                </p>
+                <button
+                  type="button"
+                  className="btn-game text-sm"
+                  onClick={() => void markAsCompleted()}
+                  disabled={submitting}
+                >
+                  {submitting ? (
+                    <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Completing...</>
+                  ) : (
+                    <><CheckCircle2 className="mr-1 h-4 w-4" /> Mark as Completed</>
+                  )}
+                </button>
+              </>
+            )}
+          </section>
+        ) : questions.length === 0 ? (
+          <section className="quest-panel p-6 text-center">
             <p className="mb-4 text-stone-foreground/70">
-              {questions.length} question{questions.length !== 1 ? "s" : ""}
+              Click below to submit and complete this {TYPE_LABELS[content.type].toLowerCase()}.
             </p>
             <button
               type="button"
               className="btn-game text-sm"
-              onClick={() => void startAttempt()}
+              onClick={() => void submitFinal()}
+              disabled={submitting}
             >
-              Start {TYPE_LABELS[content.type]}
+              {submitting ? (
+                <><Loader2 className="mr-1 h-4 w-4 animate-spin" /> Submitting...</>
+              ) : (
+                <><CheckCircle2 className="mr-1 h-4 w-4" /> Complete</>
+              )}
             </button>
           </section>
         ) : (

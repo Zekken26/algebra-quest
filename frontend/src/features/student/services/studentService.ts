@@ -994,9 +994,10 @@ export type StudentContentItem = {
   attempts: Array<{
     id: string;
     startedAt: string;
-    submittedAt: string | null;
+    completedAt: string | null;
     score: number | null;
-    totalScore: number | null;
+    maxScore: number | null;
+    status: string;
     completed: boolean;
     answers: Array<{
       id: string;

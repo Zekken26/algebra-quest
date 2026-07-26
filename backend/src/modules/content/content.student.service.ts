@@ -84,6 +84,8 @@ export async function getStudentContentDetail(studentId: string, contentId: stri
           id: true,
           equation: true,
           choices: true,
+          correctAnswer: true,
+          explanation: true,
           points: true,
           difficulty: true,
           imageUrl: true,
@@ -103,6 +105,22 @@ export async function getStudentContentDetail(studentId: string, contentId: stri
           submissions: {
             where: { studentId },
             select: { status: true, score: true, maxScore: true },
+          },
+        },
+      },
+      attempts: {
+        where: { studentId },
+        orderBy: { startedAt: "desc" },
+        take: 1,
+        select: {
+          id: true,
+          startedAt: true,
+          completedAt: true,
+          score: true,
+          maxScore: true,
+          status: true,
+          answers: {
+            select: { id: true, selectedAnswer: true, isCorrect: true, questionId: true },
           },
         },
       },
@@ -208,7 +226,7 @@ export async function submitContentAttempt(studentId: string, contentId: string)
     where: { studentId, contentId, status: "ACTIVE" },
     include: {
       answers: true,
-      content: { include: { questions: { select: { id: true, points: true } } } },
+      content: { select: { passingScore: true, questions: { select: { id: true, points: true } } } },
     },
   });
 
@@ -218,6 +236,8 @@ export async function submitContentAttempt(studentId: string, contentId: string)
   const totalQuestions = attempt.content.questions.length;
   const score = attempt.answers.filter((a) => a.isCorrect).reduce((sum) => sum + 1, 0);
   const maxScore = attempt.content.questions.reduce((sum, q) => sum + q.points, 0);
+  const passingScore = attempt.content.passingScore ?? 70;
+  const passed = maxScore === 0 ? true : Math.round((score / maxScore) * 100) >= passingScore;
 
   const updated = await prisma.contentAttempt.update({
     where: { id: attempt.id },
@@ -231,33 +251,10 @@ export async function submitContentAttempt(studentId: string, contentId: string)
 
   await upsertActivitySubmission(studentId, attempt.sectionId, contentId, "COMPLETED", score, maxScore);
 
-  const allAnswers = await prisma.contentAnswer.findMany({
-    where: { attemptId: attempt.id },
-    select: {
-      id: true,
-      questionId: true,
-      selectedAnswer: true,
-      isCorrect: true,
-      answeredAt: true,
-    },
-  });
-
-  const questions = await prisma.contentQuestion.findMany({
-    where: { contentId },
-    select: { id: true, equation: true, choices: true, correctAnswer: true, explanation: true, points: true },
-  });
-
   return {
-    attempt: updated,
-    result: {
-      score,
-      maxScore,
-      percentage: maxScore === 0 ? 0 : Math.round((score / maxScore) * 100),
-      answeredCount,
-      totalQuestions,
-    },
-    answers: allAnswers,
-    questions,
+    score,
+    totalScore: maxScore,
+    passed,
   };
 }
 
