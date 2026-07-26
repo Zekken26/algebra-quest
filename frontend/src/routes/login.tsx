@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { ForestBackground } from "@/components/ForestBackground";
+import { LandingNavbar } from "@/components/LandingNavbar";
 import { fetchStudentEnrollmentStatus } from "@/features/student/services/studentService";
 import { resolveAvatarUrl, saveAuth, type AuthUser, type Role } from "@/lib/store";
 
@@ -148,7 +149,8 @@ function LoginPage() {
 
   return (
     <ForestBackground>
-      <main className="grid min-h-screen place-items-center px-4 py-8">
+      <LandingNavbar />
+      <main className="grid min-h-screen place-items-center px-4 pt-24 pb-8">
         <motion.section
           initial={{ opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}

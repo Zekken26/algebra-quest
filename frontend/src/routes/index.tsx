@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ForestBackground } from "@/components/ForestBackground";
+import { LandingNavbar } from "@/components/LandingNavbar";
 import { Sparkles, Sword, BookOpenText } from "lucide-react";
 
 export const Route = createFileRoute("/")({
@@ -24,24 +25,8 @@ export const Route = createFileRoute("/")({
 function Landing() {
   return (
     <ForestBackground>
-      <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-sm bg-black/30">
-        <span className="font-display text-lg text-primary glow-text">Algebra Quest</span>
-        <div className="flex items-center gap-6">
-          <a
-            href="#about"
-            className="text-sm text-stone-foreground/80 hover:text-primary transition-colors"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById("about")?.scrollIntoView({ behavior: "smooth" });
-            }}
-          >
-            About
-          </a>
-          <Link to="/login" className="btn-game text-sm !py-1.5 !px-4">
-            Login
-          </Link>
-        </div>
-      </nav>
+      <style>{`html { scroll-behavior: smooth; }`}</style>
+      <LandingNavbar />
       <main className="min-h-screen flex flex-col items-center justify-center p-6 pt-24 text-center">
         <div className="animate-fade-up max-w-3xl">
           <div className="flex items-center justify-center gap-3 mb-4 animate-float">
