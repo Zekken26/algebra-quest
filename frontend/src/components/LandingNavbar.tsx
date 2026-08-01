@@ -15,12 +15,12 @@ export function LandingNavbar({ mode, onToggleMode }: Props) {
         <span className="font-display text-lg text-primary glow-text">Algebra Quest</span>
       </Link>
       <div className="flex items-center gap-6">
-        <a
-          href="/#about"
+        <Link
+          to="/about"
           className="text-sm text-stone-foreground/80 hover:text-primary transition-colors"
         >
           About
-        </a>
+        </Link>
         {isAuthPage ? (
           <button
             type="button"
