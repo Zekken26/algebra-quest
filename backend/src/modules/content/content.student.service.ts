@@ -1,5 +1,9 @@
 import { prisma } from "../../config/prisma";
 import { AppError } from "../../utils/AppError";
+import {
+  availabilityWindowWhere,
+  isWithinAvailabilityWindow,
+} from "./content.visibility";
 
 async function upsertActivitySubmission(
   studentId: string,
@@ -48,7 +52,11 @@ export async function getStudentContent(studentId: string, sectionId: string, ty
     throw new AppError("You are not enrolled in this section.", 403, "NOT_ENROLLED");
   }
 
-  const where: Record<string, unknown> = { sectionId, isPublished: true };
+  const where: Record<string, unknown> = {
+    sectionId,
+    isPublished: true,
+    AND: availabilityWindowWhere(),
+  };
   if (type) where.type = type;
 
   const content = await prisma.classContent.findMany({
@@ -129,6 +137,10 @@ export async function getStudentContentDetail(studentId: string, contentId: stri
 
   if (!content) throw new AppError("Content was not found.", 404, "CONTENT_NOT_FOUND");
 
+  if (!isWithinAvailabilityWindow(content)) {
+    throw new AppError("Content is not currently available.", 404, "CONTENT_NOT_AVAILABLE");
+  }
+
   const enrollment = await prisma.enrollment.findUnique({
     where: { studentId_sectionId: { studentId, sectionId: content.sectionId } },
     select: { status: true },
@@ -144,10 +156,21 @@ export async function getStudentContentDetail(studentId: string, contentId: stri
 export async function startContentAttempt(studentId: string, contentId: string) {
   const content = await prisma.classContent.findUnique({
     where: { id: contentId, isPublished: true },
-    select: { id: true, sectionId: true, type: true, timeLimitMinutes: true },
+    select: {
+      id: true,
+      sectionId: true,
+      type: true,
+      timeLimitMinutes: true,
+      availableFrom: true,
+      availableTo: true,
+    },
   });
 
   if (!content) throw new AppError("Content was not found.", 404, "CONTENT_NOT_FOUND");
+
+  if (!isWithinAvailabilityWindow(content)) {
+    throw new AppError("Content is not currently available.", 404, "CONTENT_NOT_AVAILABLE");
+  }
 
   const enrollment = await prisma.enrollment.findUnique({
     where: { studentId_sectionId: { studentId, sectionId: content.sectionId } },

@@ -1,6 +1,10 @@
 import { prisma } from "../../config/prisma";
 import { AppError } from "../../utils/AppError";
 import { assertTeacherOwnsSection } from "../teacher/teacher.ownership";
+import {
+  availabilityWindowWhere,
+  isWithinAvailabilityWindow,
+} from "../content/content.visibility";
 import type { ActivityType, Prisma } from "@prisma/client";
 
 function resolveSectionId(input: { classId?: string | null; sectionId?: string | null }) {
@@ -197,7 +201,11 @@ export async function getStudentActivities(studentId: string, sectionId: string,
     throw new AppError("You are not enrolled in this section.", 403, "NOT_ENROLLED");
   }
 
-  const where: Prisma.ActivityWhereInput = { sectionId, isPublished: true };
+  const where: Prisma.ActivityWhereInput = {
+    sectionId,
+    isPublished: true,
+    AND: availabilityWindowWhere(),
+  };
   if (type) where.type = type as ActivityType;
 
   const activities = await prisma.activity.findMany({
@@ -266,6 +274,10 @@ export async function getStudentActivityDetail(studentId: string, activityId: st
   });
 
   if (!activity) throw new AppError("Activity was not found.", 404, "ACTIVITY_NOT_FOUND");
+
+  if (!isWithinAvailabilityWindow(activity)) {
+    throw new AppError("Activity is not currently available.", 404, "ACTIVITY_NOT_AVAILABLE");
+  }
 
   const enrollment = await prisma.enrollment.findUnique({
     where: { studentId_sectionId: { studentId, sectionId: activity.sectionId } },

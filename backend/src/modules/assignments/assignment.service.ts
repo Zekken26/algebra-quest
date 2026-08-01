@@ -98,7 +98,7 @@ export async function createAssignment(
 }
 
 export async function getAssignments(teacherId: string, sectionId?: string) {
-  const where: Prisma.ClassContentWhereInput = { type: "ASSIGNMENT" };
+  const where: Prisma.ClassContentWhereInput = { type: "ASSIGNMENT", teacherId };
   if (sectionId) {
     await assertTeacherOwnsSection(teacherId, sectionId);
     where.sectionId = sectionId;
@@ -188,10 +188,27 @@ export async function updateAssignment(
   if (input.passingScore !== undefined) data.passingScore = input.passingScore;
   if (input.isPublished !== undefined) data.isPublished = input.isPublished;
 
-  const assignment = await prisma.classContent.update({
-    where: { id: assignmentId },
-    data,
-    include: assignmentInclude,
+  const assignment = await prisma.$transaction(async (tx) => {
+    const updated = await tx.classContent.update({
+      where: { id: assignmentId },
+      data,
+      include: assignmentInclude,
+    });
+
+    await tx.activity.updateMany({
+      where: { contentId: assignmentId },
+      data: {
+        title: updated.title,
+        description: updated.description,
+        dueDate: updated.dueDate,
+        availableFrom: updated.availableFrom,
+        availableTo: updated.availableTo,
+        totalPoints: updated.maxScore,
+        isPublished: updated.isPublished,
+      },
+    });
+
+    return updated;
   });
 
   return assignment;
@@ -220,10 +237,19 @@ export async function togglePublishAssignment(teacherId: string, assignmentId: s
   if (existing.type !== "ASSIGNMENT") throw new AppError("Not an assignment.", 400, "INVALID_TYPE");
   if (existing.teacherId !== teacherId) throw new AppError("You cannot modify another teacher's assignment.", 403, "ASSIGNMENT_FORBIDDEN");
 
-  return prisma.classContent.update({
-    where: { id: assignmentId },
-    data: { isPublished: !existing.isPublished },
-    include: assignmentInclude,
+  return prisma.$transaction(async (tx) => {
+    const assignment = await tx.classContent.update({
+      where: { id: assignmentId },
+      data: { isPublished: !existing.isPublished },
+      include: assignmentInclude,
+    });
+
+    await tx.activity.updateMany({
+      where: { contentId: assignmentId },
+      data: { isPublished: assignment.isPublished },
+    });
+
+    return assignment;
   });
 }
 

@@ -114,7 +114,7 @@ export async function createPreTest(
 }
 
 export async function getPreTests(teacherId: string, sectionId?: string) {
-  const where: Prisma.ClassContentWhereInput = { type: "PRETEST" };
+  const where: Prisma.ClassContentWhereInput = { type: "PRETEST", teacherId };
   if (sectionId) {
     await assertTeacherOwnsSection(teacherId, sectionId);
     where.sectionId = sectionId;
@@ -218,10 +218,27 @@ export async function updatePreTest(
   if (input.randomQuestions !== undefined) data.randomQuestions = input.randomQuestions;
   if (input.isPublished !== undefined) data.isPublished = input.isPublished;
 
-  return prisma.classContent.update({
-    where: { id: preTestId },
-    data,
-    include: preTestInclude,
+  return prisma.$transaction(async (tx) => {
+    const preTest = await tx.classContent.update({
+      where: { id: preTestId },
+      data,
+      include: preTestInclude,
+    });
+
+    await tx.activity.updateMany({
+      where: { contentId: preTestId },
+      data: {
+        title: preTest.title,
+        description: preTest.description,
+        dueDate: preTest.dueDate,
+        availableFrom: preTest.availableFrom,
+        availableTo: preTest.availableTo,
+        totalPoints: preTest.maxScore,
+        isPublished: preTest.isPublished,
+      },
+    });
+
+    return preTest;
   });
 }
 
@@ -248,9 +265,18 @@ export async function togglePublishPreTest(teacherId: string, preTestId: string)
   if (existing.type !== "PRETEST") throw new AppError("Not a pre-test.", 400, "INVALID_TYPE");
   if (existing.teacherId !== teacherId) throw new AppError("You cannot modify another teacher's pre-test.", 403, "PRETEST_FORBIDDEN");
 
-  return prisma.classContent.update({
-    where: { id: preTestId },
-    data: { isPublished: !existing.isPublished },
-    include: preTestInclude,
+  return prisma.$transaction(async (tx) => {
+    const preTest = await tx.classContent.update({
+      where: { id: preTestId },
+      data: { isPublished: !existing.isPublished },
+      include: preTestInclude,
+    });
+
+    await tx.activity.updateMany({
+      where: { contentId: preTestId },
+      data: { isPublished: preTest.isPublished },
+    });
+
+    return preTest;
   });
 }

@@ -108,7 +108,7 @@ export async function createAssessment(
 }
 
 export async function getAssessments(teacherId: string, sectionId?: string) {
-  const where: Prisma.ClassContentWhereInput = { type: "ASSESSMENT" };
+  const where: Prisma.ClassContentWhereInput = { type: "ASSESSMENT", teacherId };
   if (sectionId) {
     await assertTeacherOwnsSection(teacherId, sectionId);
     where.sectionId = sectionId;
@@ -206,10 +206,27 @@ export async function updateAssessment(
   if (input.shuffleChoices !== undefined) data.shuffleChoices = input.shuffleChoices;
   if (input.isPublished !== undefined) data.isPublished = input.isPublished;
 
-  return prisma.classContent.update({
-    where: { id: assessmentId },
-    data,
-    include: assessmentInclude,
+  return prisma.$transaction(async (tx) => {
+    const assessment = await tx.classContent.update({
+      where: { id: assessmentId },
+      data,
+      include: assessmentInclude,
+    });
+
+    await tx.activity.updateMany({
+      where: { contentId: assessmentId },
+      data: {
+        title: assessment.title,
+        description: assessment.description,
+        dueDate: assessment.dueDate,
+        availableFrom: assessment.availableFrom,
+        availableTo: assessment.availableTo,
+        totalPoints: assessment.maxScore,
+        isPublished: assessment.isPublished,
+      },
+    });
+
+    return assessment;
   });
 }
 
@@ -236,9 +253,18 @@ export async function togglePublishAssessment(teacherId: string, assessmentId: s
   if (existing.type !== "ASSESSMENT") throw new AppError("Not an assessment.", 400, "INVALID_TYPE");
   if (existing.teacherId !== teacherId) throw new AppError("You cannot modify another teacher's assessment.", 403, "ASSESSMENT_FORBIDDEN");
 
-  return prisma.classContent.update({
-    where: { id: assessmentId },
-    data: { isPublished: !existing.isPublished },
-    include: assessmentInclude,
+  return prisma.$transaction(async (tx) => {
+    const assessment = await tx.classContent.update({
+      where: { id: assessmentId },
+      data: { isPublished: !existing.isPublished },
+      include: assessmentInclude,
+    });
+
+    await tx.activity.updateMany({
+      where: { contentId: assessmentId },
+      data: { isPublished: assessment.isPublished },
+    });
+
+    return assessment;
   });
 }
