@@ -310,8 +310,9 @@ export function StudentContentPage({ contentId }: Props) {
   {currentQuestion.equation}
 </p>
 
-                <div className="grid gap-3">
-                  {currentQuestion.choices.map((choice) => {
+                {currentQuestion.choices.length > 0 ? (
+                  <div className="grid gap-3">
+                    {currentQuestion.choices.map((choice) => {
                     let choiceClass =
                       "rounded-xl border p-4 text-center font-semibold transition-all cursor-pointer hover:border-primary/40 hover:bg-primary/5";
                     if (answerResult) {
@@ -338,8 +339,31 @@ export function StudentContentPage({ contentId }: Props) {
                         {choice}
                       </button>
                     );
-                  })}
-                </div>
+                    })}
+                  </div>
+                ) : currentQuestion.questionType === "ESSAY" ? (
+                  <label className="grid gap-1.5">
+                    <span className="text-sm font-medium text-stone-foreground/80">Your response</span>
+                    <textarea
+                      className="teacher-input min-h-32"
+                      value={selectedAnswer ?? ""}
+                      onChange={(event) => setSelectedAnswer(event.target.value)}
+                      disabled={!!answerResult}
+                      placeholder="Write your answer..."
+                    />
+                  </label>
+                ) : (
+                  <label className="grid gap-1.5">
+                    <span className="text-sm font-medium text-stone-foreground/80">Your answer</span>
+                    <input
+                      className="teacher-input"
+                      value={selectedAnswer ?? ""}
+                      onChange={(event) => setSelectedAnswer(event.target.value)}
+                      disabled={!!answerResult}
+                      placeholder="Enter your answer..."
+                    />
+                  </label>
+                )}
 
                 {answerResult ? (
                   <div className="mt-4 rounded-xl bg-black/20 p-4">
@@ -370,7 +394,7 @@ export function StudentContentPage({ contentId }: Props) {
                       type="button"
                       className="btn-game text-sm"
                       onClick={() => void handleAnswer()}
-                      disabled={!selectedAnswer || answering}
+                      disabled={!selectedAnswer?.trim() || answering}
                     >
                       {answering ? (
                         <>

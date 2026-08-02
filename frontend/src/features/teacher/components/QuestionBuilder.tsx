@@ -379,6 +379,9 @@ export function QuestionBuilder({
                 >
                   + Add Pair
                 </button>
+                {fieldErrors[`questions.${index}.matchingPairs`] && (
+                  <span className="text-xs text-destructive">{fieldErrors[`questions.${index}.matchingPairs`]}</span>
+                )}
               </div>
             )}
 
@@ -395,6 +398,9 @@ export function QuestionBuilder({
                   }}
                 />
                 <p className="text-xs text-stone-foreground/40">Separate each item with a new line.</p>
+                {fieldErrors[`questions.${index}.enumerationItems`] && (
+                  <span className="text-xs text-destructive">{fieldErrors[`questions.${index}.enumerationItems`]}</span>
+                )}
               </div>
             )}
 

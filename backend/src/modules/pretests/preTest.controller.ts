@@ -7,8 +7,25 @@ import {
   preTestQuerySchema,
 } from "./preTest.validation";
 
+function fieldErrors(issues: Array<{ path: PropertyKey[]; message: string }>) {
+  return Object.fromEntries(issues.map((issue) => [issue.path.join("."), issue.message]));
+}
+
 export const createPreTest = asyncHandler(async (req, res) => {
-  const body = createPreTestSchema.parse(req.body);
+  const parsed = createPreTestSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const errors = fieldErrors(parsed.error.issues);
+    console.info("pretest.create.validation_failed", { userId: req.user?.sub, fields: Object.keys(errors) });
+    res.status(400).json({
+      success: false,
+      code: "PRETEST_VALIDATION_ERROR",
+      message: "The pre-test could not be created.",
+      fieldErrors: errors,
+      error: { code: "PRETEST_VALIDATION_ERROR", message: "The pre-test could not be created.", fieldErrors: errors },
+    });
+    return;
+  }
+  const body = parsed.data;
   const preTest = await preTestService.createPreTest(req.user!.sub, body);
 
   res.status(201).json({ success: true, data: { preTest } });

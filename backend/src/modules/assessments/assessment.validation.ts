@@ -22,14 +22,20 @@ export const createAssessmentSchema = z.object({
   classId: z.string().trim().min(1).nullable().optional(),
   sectionId: z.string().trim().min(1).nullable().optional(),
   questions: z.array(z.object({
-    equation: z.string().min(1),
+    equation: z.string().trim().min(1, "Question content is required."),
     questionType: z.enum(["MULTIPLE_CHOICE", "TRUE_FALSE", "IDENTIFICATION", "ESSAY", "SHORT_ANSWER"]).default("MULTIPLE_CHOICE"),
     choices: z.array(z.string()).default([]),
-    correctAnswer: z.string().min(1),
+    correctAnswer: z.string().trim().min(1, "A correct answer is required."),
     explanation: z.string().default(""),
     points: z.number().int().nonnegative().default(1),
     difficulty: z.string().default("Medium"),
   })).default([]),
+}).superRefine((value, ctx) => {
+  const availableFrom = value.availableFrom ? new Date(value.availableFrom) : null;
+  const dueDate = value.dueDate ? new Date(value.dueDate) : null;
+  if (availableFrom && dueDate && dueDate < availableFrom) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dueDate"], message: "Due date cannot be earlier than the availability date." });
+  }
 });
 
 export const updateAssessmentSchema = z.object({

@@ -8,6 +8,7 @@ import { TeacherHeader } from "@/features/teacher/components/TeacherHeader";
 import {
   fetchTeacherSections,
   createAssessment,
+  ApiRequestError,
   type TeacherSection,
 } from "@/features/teacher/services/teacherService";
 import type { QuestionData } from "@/features/teacher/components/QuestionBuilder";
@@ -23,6 +24,8 @@ export function AssessmentWizardPage() {
   const [autoGrade, setAutoGrade] = useState(true);
   const [shuffleQuestions, setShuffleQuestions] = useState(false);
   const [shuffleChoices, setShuffleChoices] = useState(false);
+  const [isPublished, setIsPublished] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -52,6 +55,17 @@ export function AssessmentWizardPage() {
     isPublished: boolean;
     sectionIds: string[];
   }) => {
+    const nextErrors: Record<string, string> = {};
+    if (data.sectionIds.length === 0) nextErrors.sectionIds = "Select at least one class.";
+    questions.forEach((question, index) => {
+      if (!question.equation.trim()) nextErrors[`questions.${index}.equation`] = "Question content is required.";
+      if (!question.correctAnswer.trim()) nextErrors[`questions.${index}.correctAnswer`] = "A correct answer is required.";
+    });
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      return;
+    }
+    setFieldErrors({});
     const baseInput = {
       title: data.title,
       description: data.description,
@@ -78,18 +92,18 @@ export function AssessmentWizardPage() {
     };
 
     try {
-      const firstSectionId = data.sectionIds[0] || sections[0]?.id;
-      if (!firstSectionId) {
-        toast.error("No class available. Create a class first.");
-        return;
-      }
-      for (const sid of data.sectionIds.length > 0 ? data.sectionIds : [firstSectionId]) {
+      for (const sid of data.sectionIds) {
         await createAssessment({ ...baseInput, sectionId: sid });
       }
-      toast.success("Assessment created.");
+      toast.success(data.isPublished ? "Assessment created and published." : "Assessment saved as a draft.");
       goToModules();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save assessment.");
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        setFieldErrors(error.fieldErrors);
+        toast.error(error.message);
+        return;
+      }
+      toast.error("Failed to save assessment.");
     }
   };
 
@@ -112,6 +126,9 @@ export function AssessmentWizardPage() {
         title="New Assessment"
         onSave={handleSaveForm}
         onCancel={goToModules}
+        fieldErrors={fieldErrors}
+        isPublished={isPublished}
+        onPublishChange={setIsPublished}
       >
         <SettingsPanel title="Assessment Settings">
           <SettingsField label="Time Limit (minutes)">
@@ -155,7 +172,11 @@ export function AssessmentWizardPage() {
         <div className="mt-4">
           <QuestionBuilder
             questions={questions}
-            onChange={setQuestions}
+            onChange={(nextQuestions) => {
+              setQuestions(nextQuestions);
+              setFieldErrors((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith("questions."))));
+            }}
+            fieldErrors={fieldErrors}
             allowedTypes={["MULTIPLE_CHOICE", "TRUE_FALSE", "IDENTIFICATION", "ESSAY", "SHORT_ANSWER"]}
           />
         </div>

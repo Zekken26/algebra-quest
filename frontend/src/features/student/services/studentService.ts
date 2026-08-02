@@ -89,6 +89,7 @@ export type StudentAssignedQuest = {
   questions?: Array<{
     id: string;
     equation: string;
+    questionType: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "IDENTIFICATION" | "SHORT_ANSWER" | "ESSAY" | "MATCHING" | "ENUMERATION";
     choices: string[];
     difficulty: string;
     imageUrl?: string | null;
@@ -984,6 +985,7 @@ export type StudentContentItem = {
   questions: Array<{
     id: string;
     equation: string;
+    questionType: "MULTIPLE_CHOICE" | "TRUE_FALSE" | "IDENTIFICATION" | "SHORT_ANSWER" | "ESSAY" | "MATCHING" | "ENUMERATION";
     choices: string[];
     explanation: string;
     points: number;
