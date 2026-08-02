@@ -23,16 +23,30 @@ export const createPreTestSchema = z.object({
   classId: z.string().trim().min(1).nullable().optional(),
   sectionId: z.string().trim().min(1).nullable().optional(),
   questions: z.array(z.object({
-    equation: z.string().min(1),
+    equation: z.string().trim().min(1, "Question content is required."),
     questionType: z.enum(["MULTIPLE_CHOICE", "TRUE_FALSE", "IDENTIFICATION", "MATCHING", "ENUMERATION", "SHORT_ANSWER"]).default("MULTIPLE_CHOICE"),
     choices: z.array(z.string()).default([]),
-    correctAnswer: z.string().min(1),
+    correctAnswer: z.string().trim().min(1, "A correct answer is required."),
     explanation: z.string().default(""),
     points: z.number().int().nonnegative().default(1),
     difficulty: z.string().default("Medium"),
     matchingPairs: z.array(z.object({ left: z.string(), right: z.string() })).nullable().optional(),
     enumerationItems: z.array(z.string()).default([]),
   })).default([]),
+}).superRefine((value, ctx) => {
+  const availableFrom = value.availableFrom ? new Date(value.availableFrom) : null;
+  const dueDate = value.dueDate ? new Date(value.dueDate) : null;
+  if (availableFrom && dueDate && dueDate < availableFrom) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dueDate"], message: "Due date cannot be earlier than the availability date." });
+  }
+  value.questions.forEach((question, index) => {
+    if (question.questionType === "MATCHING" && !question.matchingPairs?.some((pair) => pair.left.trim() && pair.right.trim())) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["questions", index, "matchingPairs"], message: "Add at least one complete matching pair." });
+    }
+    if (question.questionType === "ENUMERATION" && !question.enumerationItems.some((item) => item.trim())) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["questions", index, "enumerationItems"], message: "Add at least one enumeration item." });
+    }
+  });
 });
 
 export const updatePreTestSchema = z.object({

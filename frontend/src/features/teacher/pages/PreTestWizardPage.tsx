@@ -8,6 +8,7 @@ import { TeacherHeader } from "@/features/teacher/components/TeacherHeader";
 import {
   fetchTeacherSections,
   createPreTest,
+  ApiRequestError,
   type TeacherSection,
 } from "@/features/teacher/services/teacherService";
 import type { QuestionData } from "@/features/teacher/components/QuestionBuilder";
@@ -24,6 +25,8 @@ export function PreTestWizardPage() {
   const [attemptsAllowed, setAttemptsAllowed] = useState("1");
   const [showScoreImmediately, setShowScoreImmediately] = useState(true);
   const [randomQuestions, setRandomQuestions] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -53,6 +56,27 @@ export function PreTestWizardPage() {
     isPublished: boolean;
     sectionIds: string[];
   }) => {
+    const nextErrors: Record<string, string> = {};
+    if (data.sectionIds.length === 0) nextErrors.sectionIds = "Select at least one class.";
+    questions.forEach((question, index) => {
+      if (!question.equation.trim()) nextErrors[`questions.${index}.equation`] = "Question content is required.";
+      if (question.questionType === "MATCHING") {
+        if (!question.matchingPairs?.some((pair) => pair.left.trim() && pair.right.trim())) {
+          nextErrors[`questions.${index}.matchingPairs`] = "Add at least one complete matching pair.";
+        }
+      } else if (question.questionType === "ENUMERATION") {
+        if (!question.enumerationItems?.some((item) => item.trim())) {
+          nextErrors[`questions.${index}.enumerationItems`] = "Add at least one enumeration item.";
+        }
+      } else if (!question.correctAnswer.trim()) {
+        nextErrors[`questions.${index}.correctAnswer`] = "A correct answer is required.";
+      }
+    });
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      return;
+    }
+    setFieldErrors({});
     const baseInput = {
       title: data.title,
       description: data.description,
@@ -73,7 +97,11 @@ export function PreTestWizardPage() {
         equation: q.equation,
         questionType: q.questionType,
         choices: q.questionType === "TRUE_FALSE" ? ["True", "False"] : q.choices,
-        correctAnswer: q.correctAnswer,
+        correctAnswer: q.questionType === "MATCHING"
+          ? q.matchingPairs!.map((pair) => `${pair.left}=${pair.right}`).join("|")
+          : q.questionType === "ENUMERATION"
+            ? q.enumerationItems!.join("|")
+            : q.correctAnswer,
         explanation: q.explanation,
         points: q.points,
         matchingPairs: q.matchingPairs ?? null,
@@ -82,18 +110,18 @@ export function PreTestWizardPage() {
     };
 
     try {
-      const firstSectionId = data.sectionIds[0] || sections[0]?.id;
-      if (!firstSectionId) {
-        toast.error("No class available. Create a class first.");
-        return;
-      }
-      for (const sid of data.sectionIds.length > 0 ? data.sectionIds : [firstSectionId]) {
+      for (const sid of data.sectionIds) {
         await createPreTest({ ...baseInput, sectionId: sid });
       }
-      toast.success("Pre-Test created.");
+      toast.success(data.isPublished ? "Pre-Test created and published." : "Pre-Test saved as a draft.");
       goToModules();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save pre-test.");
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        setFieldErrors(error.fieldErrors);
+        toast.error(error.message);
+        return;
+      }
+      toast.error("Failed to save pre-test.");
     }
   };
 
@@ -116,6 +144,9 @@ export function PreTestWizardPage() {
         title="New Pre-Test"
         onSave={handleSaveForm}
         onCancel={goToModules}
+        fieldErrors={fieldErrors}
+        isPublished={isPublished}
+        onPublishChange={setIsPublished}
       >
         <SettingsPanel title="Pre-Test Settings">
           <SettingsField label="Time Limit (minutes)">
@@ -169,7 +200,11 @@ export function PreTestWizardPage() {
         <div className="mt-4">
           <QuestionBuilder
             questions={questions}
-            onChange={setQuestions}
+            onChange={(nextQuestions) => {
+              setQuestions(nextQuestions);
+              setFieldErrors((current) => Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith("questions."))));
+            }}
+            fieldErrors={fieldErrors}
             allowedTypes={["MULTIPLE_CHOICE", "TRUE_FALSE", "IDENTIFICATION", "MATCHING", "ENUMERATION", "SHORT_ANSWER"]}
           />
         </div>

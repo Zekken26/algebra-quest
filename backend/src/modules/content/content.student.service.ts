@@ -92,6 +92,7 @@ export async function getStudentContentDetail(studentId: string, contentId: stri
         select: {
           id: true,
           equation: true,
+          questionType: true,
           choices: true,
           explanation: true,
           points: true,

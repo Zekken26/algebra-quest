@@ -7,8 +7,25 @@ import {
   assessmentQuerySchema,
 } from "./assessment.validation";
 
+function fieldErrors(issues: Array<{ path: PropertyKey[]; message: string }>) {
+  return Object.fromEntries(issues.map((issue) => [issue.path.join("."), issue.message]));
+}
+
 export const createAssessment = asyncHandler(async (req, res) => {
-  const body = createAssessmentSchema.parse(req.body);
+  const parsed = createAssessmentSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const errors = fieldErrors(parsed.error.issues);
+    console.info("assessment.create.validation_failed", { userId: req.user?.sub, fields: Object.keys(errors) });
+    res.status(400).json({
+      success: false,
+      code: "ASSESSMENT_VALIDATION_ERROR",
+      message: "The assessment could not be created.",
+      fieldErrors: errors,
+      error: { code: "ASSESSMENT_VALIDATION_ERROR", message: "The assessment could not be created.", fieldErrors: errors },
+    });
+    return;
+  }
+  const body = parsed.data;
   const assessment = await assessmentService.createAssessment(req.user!.sub, body);
 
   res.status(201).json({ success: true, data: { assessment } });
