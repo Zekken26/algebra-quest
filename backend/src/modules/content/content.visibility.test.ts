@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { isWithinAvailabilityWindow } from "./content.visibility";
+import { isWithinAttemptTimeLimit, isWithinAvailabilityWindow } from "./content.visibility";
 
 const now = new Date("2026-08-01T12:00:00.000Z");
 
@@ -18,6 +18,17 @@ test("hides scheduled content until its availability date", () => {
 test("hides expired content after its availability date", () => {
   assert.equal(
     isWithinAvailabilityWindow({ availableFrom: null, availableTo: new Date("2026-08-01T11:59:59.000Z") }, now),
+    false,
+  );
+});
+
+test("enforces a server-side attempt time limit", () => {
+  assert.equal(
+    isWithinAttemptTimeLimit(new Date("2026-08-01T11:50:00.000Z"), 10, now),
+    true,
+  );
+  assert.equal(
+    isWithinAttemptTimeLimit(new Date("2026-08-01T11:49:59.000Z"), 10, now),
     false,
   );
 });

@@ -985,7 +985,6 @@ export type StudentContentItem = {
     id: string;
     equation: string;
     choices: string[];
-    correctAnswer: string;
     explanation: string;
     points: number;
     difficulty: string;

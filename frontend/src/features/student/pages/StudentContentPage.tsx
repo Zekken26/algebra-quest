@@ -315,7 +315,7 @@ export function StudentContentPage({ contentId }: Props) {
                     let choiceClass =
                       "rounded-xl border p-4 text-center font-semibold transition-all cursor-pointer hover:border-primary/40 hover:bg-primary/5";
                     if (answerResult) {
-                      if (choice === currentQuestion.correctAnswer) {
+                      if (choice === answerResult.correctAnswer) {
                         choiceClass += " border-success bg-success/10 text-success";
                       } else if (choice === selectedAnswer && !answerResult.isCorrect) {
                         choiceClass += " border-destructive bg-destructive/10 text-destructive";

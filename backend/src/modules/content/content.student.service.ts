@@ -2,6 +2,7 @@ import { prisma } from "../../config/prisma";
 import { AppError } from "../../utils/AppError";
 import {
   availabilityWindowWhere,
+  isWithinAttemptTimeLimit,
   isWithinAvailabilityWindow,
 } from "./content.visibility";
 
@@ -92,7 +93,6 @@ export async function getStudentContentDetail(studentId: string, contentId: stri
           id: true,
           equation: true,
           choices: true,
-          correctAnswer: true,
           explanation: true,
           points: true,
           difficulty: true,
@@ -161,6 +161,7 @@ export async function startContentAttempt(studentId: string, contentId: string) 
       sectionId: true,
       type: true,
       timeLimitMinutes: true,
+      attemptsAllowed: true,
       availableFrom: true,
       availableTo: true,
     },
@@ -186,7 +187,15 @@ export async function startContentAttempt(studentId: string, contentId: string) 
   });
 
   if (existingActive) {
+    if (!isWithinAttemptTimeLimit(existingActive.startedAt, content.timeLimitMinutes)) {
+      throw new AppError("This attempt has expired.", 403, "ATTEMPT_EXPIRED");
+    }
     return existingActive;
+  }
+
+  const attemptCount = await prisma.contentAttempt.count({ where: { studentId, contentId } });
+  if (attemptCount >= content.attemptsAllowed) {
+    throw new AppError("You have used all allowed attempts.", 403, "ATTEMPT_LIMIT_REACHED");
   }
 
   const attempt = await prisma.contentAttempt.create({
@@ -211,7 +220,15 @@ export async function answerContentQuestion(
 ) {
   const question = await prisma.contentQuestion.findUnique({
     where: { id: questionId, contentId },
-    select: { id: true, correctAnswer: true, points: true, content: { select: { sectionId: true } } },
+    select: {
+      id: true,
+      correctAnswer: true,
+      explanation: true,
+      points: true,
+      content: {
+        select: { sectionId: true, availableFrom: true, availableTo: true, timeLimitMinutes: true },
+      },
+    },
   });
 
   if (!question) throw new AppError("Question was not found.", 404, "QUESTION_NOT_FOUND");
@@ -221,6 +238,21 @@ export async function answerContentQuestion(
   });
 
   if (!attempt) throw new AppError("No active attempt. Start the content first.", 400, "NO_ACTIVE_ATTEMPT");
+
+  if (!isWithinAvailabilityWindow(question.content)) {
+    throw new AppError("Content is not currently available.", 403, "CONTENT_NOT_AVAILABLE");
+  }
+  if (!isWithinAttemptTimeLimit(attempt.startedAt, question.content.timeLimitMinutes)) {
+    throw new AppError("This attempt has expired.", 403, "ATTEMPT_EXPIRED");
+  }
+
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { studentId_sectionId: { studentId, sectionId: question.content.sectionId } },
+    select: { status: true },
+  });
+  if (!enrollment || enrollment.status !== "ACTIVE") {
+    throw new AppError("You are not enrolled in this section.", 403, "NOT_ENROLLED");
+  }
 
   const existingAnswer = await prisma.contentAnswer.findFirst({
     where: { attemptId: attempt.id, questionId },
@@ -241,7 +273,13 @@ export async function answerContentQuestion(
     },
   });
 
-  return { isCorrect, points: isCorrect ? question.points : 0, answer };
+  return {
+    isCorrect,
+    correctAnswer: question.correctAnswer,
+    explanation: question.explanation,
+    points: isCorrect ? question.points : 0,
+    answer,
+  };
 }
 
 export async function submitContentAttempt(studentId: string, contentId: string) {
@@ -249,15 +287,44 @@ export async function submitContentAttempt(studentId: string, contentId: string)
     where: { studentId, contentId, status: "ACTIVE" },
     include: {
       answers: true,
-      content: { select: { passingScore: true, questions: { select: { id: true, points: true } } } },
+      content: {
+        select: {
+          passingScore: true,
+          availableFrom: true,
+          availableTo: true,
+          timeLimitMinutes: true,
+          questions: { select: { id: true, points: true } },
+        },
+      },
     },
   });
 
   if (!attempt) throw new AppError("No active attempt.", 400, "NO_ACTIVE_ATTEMPT");
 
+  if (!isWithinAvailabilityWindow(attempt.content)) {
+    throw new AppError("Content is not currently available.", 403, "CONTENT_NOT_AVAILABLE");
+  }
+  if (!isWithinAttemptTimeLimit(attempt.startedAt, attempt.content.timeLimitMinutes)) {
+    throw new AppError("This attempt has expired.", 403, "ATTEMPT_EXPIRED");
+  }
+
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { studentId_sectionId: { studentId, sectionId: attempt.sectionId } },
+    select: { status: true },
+  });
+  if (!enrollment || enrollment.status !== "ACTIVE") {
+    throw new AppError("You are not enrolled in this section.", 403, "NOT_ENROLLED");
+  }
+
   const answeredCount = attempt.answers.length;
   const totalQuestions = attempt.content.questions.length;
-  const score = attempt.answers.filter((a) => a.isCorrect).reduce((sum) => sum + 1, 0);
+  const pointsByQuestionId = new Map(
+    attempt.content.questions.map((question) => [question.id, question.points]),
+  );
+  const score = attempt.answers.reduce(
+    (sum, answer) => sum + (answer.isCorrect ? (pointsByQuestionId.get(answer.questionId) ?? 0) : 0),
+    0,
+  );
   const maxScore = attempt.content.questions.reduce((sum, q) => sum + q.points, 0);
   const passingScore = attempt.content.passingScore ?? 70;
   const passed = maxScore === 0 ? true : Math.round((score / maxScore) * 100) >= passingScore;
