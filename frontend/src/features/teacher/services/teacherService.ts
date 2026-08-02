@@ -18,8 +18,23 @@ const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:5000/api"
 type ApiPayload<T> = {
   success: boolean;
   data?: T;
-  error?: { message?: string };
+  code?: string;
+  message?: string;
+  fieldErrors?: Record<string, string>;
+  error?: { code?: string; message?: string; fieldErrors?: Record<string, string> };
 };
+
+export class ApiRequestError extends Error {
+  readonly code?: string;
+  readonly fieldErrors: Record<string, string>;
+
+  constructor(message: string, options: { code?: string; fieldErrors?: Record<string, string> } = {}) {
+    super(message);
+    this.name = "ApiRequestError";
+    this.code = options.code;
+    this.fieldErrors = options.fieldErrors ?? {};
+  }
+}
 
 export type TeacherProfile = {
   id: string;
@@ -127,7 +142,10 @@ async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T
   const payload = (await response.json().catch(() => ({}))) as ApiPayload<T>;
 
   if (!response.ok || !payload.success || payload.data === undefined) {
-    throw new Error(payload.error?.message ?? "Request failed. Please try again.");
+    throw new ApiRequestError(
+      payload.message ?? payload.error?.message ?? "Request failed. Please try again.",
+      { code: payload.code ?? payload.error?.code, fieldErrors: payload.fieldErrors ?? payload.error?.fieldErrors },
+    );
   }
 
   return payload.data;

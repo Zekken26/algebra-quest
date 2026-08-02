@@ -20,6 +20,7 @@ type QuestionBuilderProps = {
   onChange: (questions: QuestionData[]) => void;
   allowedTypes?: QuestionType[];
   disabled?: boolean;
+  fieldErrors?: Record<string, string>;
 };
 
 const questionTypeLabels: Record<QuestionType, string> = {
@@ -47,6 +48,7 @@ export function QuestionBuilder({
   onChange,
   allowedTypes = defaultTypes,
   disabled,
+  fieldErrors = {},
 }: QuestionBuilderProps) {
   const filteredTypes = allowedTypes.filter((t) => defaultTypes.includes(t));
   const [textMode, setTextMode] = useState<Record<number, boolean>>({});
@@ -215,6 +217,9 @@ export function QuestionBuilder({
                 onChange={(v) => updateQuestion(index, { equation: v })}
                 mathMode={!textMode[index]}
               />
+              {fieldErrors[`questions.${index}.equation`] && (
+                <span className="text-xs text-destructive">{fieldErrors[`questions.${index}.equation`]}</span>
+              )}
             </div>
             {question.equation && (
               <div className="rounded-xl border border-primary/10 bg-black/20 p-3 text-center">
@@ -255,6 +260,9 @@ export function QuestionBuilder({
                     />
                   </label>
                 ))}
+                {fieldErrors[`questions.${index}.correctAnswer`] && (
+                  <span className="text-xs text-destructive sm:col-span-2">{fieldErrors[`questions.${index}.correctAnswer`]}</span>
+                )}
               </div>
             )}
 
@@ -284,6 +292,9 @@ export function QuestionBuilder({
                   value={question.correctAnswer}
                   onChange={(e) => updateQuestion(index, { correctAnswer: e.target.value })}
                 />
+                {fieldErrors[`questions.${index}.correctAnswer`] && (
+                  <span className="text-xs text-destructive">{fieldErrors[`questions.${index}.correctAnswer`]}</span>
+                )}
               </label>
             )}
 
@@ -296,11 +307,26 @@ export function QuestionBuilder({
                   value={question.correctAnswer}
                   onChange={(e) => updateQuestion(index, { correctAnswer: e.target.value })}
                 />
+                {fieldErrors[`questions.${index}.correctAnswer`] && (
+                  <span className="text-xs text-destructive">{fieldErrors[`questions.${index}.correctAnswer`]}</span>
+                )}
               </label>
             )}
 
             {question.questionType === "ESSAY" && (
               <div className="rounded-xl border border-primary/10 bg-black/20 p-3">
+                <label className="grid gap-1">
+                  <span className="text-xs text-stone-foreground/60">Expected Answer / Grading Guide</span>
+                  <textarea
+                    className="teacher-input min-h-20"
+                    placeholder="Describe what a complete answer should include..."
+                    value={question.correctAnswer}
+                    onChange={(e) => updateQuestion(index, { correctAnswer: e.target.value })}
+                  />
+                  {fieldErrors[`questions.${index}.correctAnswer`] && (
+                    <span className="text-xs text-destructive">{fieldErrors[`questions.${index}.correctAnswer`]}</span>
+                  )}
+                </label>
                 <p className="text-xs text-stone-foreground/60">Essay question — students will write a response. No auto-grade.</p>
               </div>
             )}

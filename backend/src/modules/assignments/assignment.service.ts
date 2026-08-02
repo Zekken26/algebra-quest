@@ -35,9 +35,26 @@ export async function createAssignment(
 ) {
   const sectionId = input.sectionId ?? input.classId;
   if (!sectionId) throw new AppError("sectionId or classId is required.", 400, "SECTION_REQUIRED");
-  await assertTeacherOwnsSection(teacherId, sectionId);
+  try {
+    await assertTeacherOwnsSection(teacherId, sectionId);
+  } catch (error) {
+    console.warn("assignment.create.authorization_failed", {
+      userId: teacherId,
+      classId: sectionId,
+      reason: error instanceof Error ? error.message : "Unknown authorization failure",
+    });
+    throw error;
+  }
 
-  const result = await prisma.$transaction(async (tx) => {
+  console.info("assignment.create.started", {
+    userId: teacherId,
+    classId: sectionId,
+    isPublished: input.isPublished ?? false,
+    questionCount: input.questions?.length ?? 0,
+  });
+
+  try {
+    const result = await prisma.$transaction(async (tx) => {
     const content = await tx.classContent.create({
       data: {
         title: input.title,
@@ -92,9 +109,18 @@ export async function createAssignment(
       where: { id: content.id },
       include: assignmentInclude,
     });
-  });
+    });
 
-  return result;
+    console.info("assignment.create.completed", { userId: teacherId, classId: sectionId, assignmentId: result.id });
+    return result;
+  } catch (error) {
+    console.error("assignment.create.transaction_failed", {
+      userId: teacherId,
+      classId: sectionId,
+      error: error instanceof Error ? error.message : "Unknown transaction failure",
+    });
+    throw error;
+  }
 }
 
 export async function getAssignments(teacherId: string, sectionId?: string) {

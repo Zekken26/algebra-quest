@@ -7,8 +7,31 @@ import {
   assignmentQuerySchema,
 } from "./assignment.validation";
 
+function assignmentFieldErrors(issues: Array<{ path: PropertyKey[]; message: string }>) {
+  return Object.fromEntries(
+    issues.map((issue) => [issue.path.join("."), issue.message]),
+  );
+}
+
 export const createAssignment = asyncHandler(async (req, res) => {
-  const body = createAssignmentSchema.parse(req.body);
+  const parsed = createAssignmentSchema.safeParse(req.body);
+  if (!parsed.success) {
+    const fieldErrors = assignmentFieldErrors(parsed.error.issues);
+    console.info("assignment.create.validation_failed", {
+      userId: req.user?.sub,
+      fields: Object.keys(fieldErrors),
+    });
+    res.status(400).json({
+      success: false,
+      code: "ASSIGNMENT_VALIDATION_ERROR",
+      message: "The assignment could not be created.",
+      fieldErrors,
+      error: { code: "ASSIGNMENT_VALIDATION_ERROR", message: "The assignment could not be created.", fieldErrors },
+    });
+    return;
+  }
+
+  const body = parsed.data;
   const assignment = await assignmentService.createAssignment(req.user!.sub, body);
 
   res.status(201).json({ success: true, data: { assignment } });

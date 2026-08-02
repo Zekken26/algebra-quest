@@ -31,6 +31,9 @@ type ModuleActivityFormProps = {
     sectionIds: string[];
   }) => Promise<void>;
   onCancel: () => void;
+  fieldErrors?: Record<string, string>;
+  isPublished?: boolean;
+  onPublishChange?: (isPublished: boolean) => void;
   children?: React.ReactNode;
 };
 
@@ -40,6 +43,9 @@ export function ModuleActivityForm({
   initial,
   onSave,
   onCancel,
+  fieldErrors = {},
+  isPublished,
+  onPublishChange,
   children,
 }: ModuleActivityFormProps) {
   const [formTitle, setFormTitle] = useState(initial?.title ?? "");
@@ -52,6 +58,8 @@ export function ModuleActivityForm({
   const [sectionIds, setSectionIds] = useState<string[]>(initial?.sectionIds ?? []);
   const [sections, setSections] = useState<TeacherSection[]>([]);
   const [saving, setSaving] = useState(false);
+  const [localErrors, setLocalErrors] = useState<Record<string, string>>({});
+  const errors = { ...fieldErrors, ...localErrors };
 
   useEffect(() => {
     void fetchTeacherSections()
@@ -66,8 +74,22 @@ export function ModuleActivityForm({
   };
 
   const handleSave = async () => {
-    if (!formTitle.trim()) {
-      toast.error("Title is required.");
+    const nextErrors: Record<string, string> = {};
+    if (formTitle.trim().length < 2) {
+      nextErrors.title = "Title must contain at least two characters.";
+    }
+    if (sectionIds.length === 0) {
+      nextErrors.sectionIds = "Select at least one class.";
+    }
+    const due = dueDate ? new Date(dueDate) : null;
+    const available = availableFrom ? new Date(availableFrom) : null;
+    if ((due && Number.isNaN(due.getTime())) || (available && Number.isNaN(available.getTime()))) {
+      nextErrors.dueDate = "Enter valid dates.";
+    } else if (due && available && due < available) {
+      nextErrors.dueDate = "Due date cannot be earlier than the availability date.";
+    }
+    setLocalErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
       return;
     }
 
@@ -81,7 +103,7 @@ export function ModuleActivityForm({
         availableFrom: availableFrom ? new Date(availableFrom).toISOString() : null,
         availableTo: availableTo ? new Date(availableTo).toISOString() : null,
         totalPoints: totalPoints ? parseInt(totalPoints, 10) : null,
-        isPublished: initial?.isPublished ?? true,
+        isPublished: isPublished ?? initial?.isPublished ?? false,
         sectionIds,
       });
     } finally {
@@ -106,9 +128,13 @@ export function ModuleActivityForm({
           <input
             className="teacher-input"
             value={formTitle}
-            onChange={(e) => setFormTitle(e.target.value)}
+            onChange={(e) => {
+              setFormTitle(e.target.value);
+              setLocalErrors((current) => ({ ...current, title: "" }));
+            }}
             placeholder="Enter title..."
           />
+          {errors.title && <span className="text-xs text-destructive">{errors.title}</span>}
         </label>
 
         <label className="grid gap-1.5">
@@ -136,14 +162,21 @@ export function ModuleActivityForm({
             <span className="text-sm font-medium text-stone-foreground/80">Due Date</span>
             <DateTimeInput
               value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
+              onChange={(e) => {
+                setDueDate(e.target.value);
+                setLocalErrors((current) => ({ ...current, dueDate: "" }));
+              }}
             />
+            {errors.dueDate && <span className="text-xs text-destructive">{errors.dueDate}</span>}
           </label>
           <label className="grid gap-1.5">
             <span className="text-sm font-medium text-stone-foreground/80">Available From</span>
             <DateTimeInput
               value={availableFrom}
-              onChange={(e) => setAvailableFrom(e.target.value)}
+              onChange={(e) => {
+                setAvailableFrom(e.target.value);
+                setLocalErrors((current) => ({ ...current, dueDate: "" }));
+              }}
             />
           </label>
           <label className="grid gap-1.5">
@@ -167,9 +200,9 @@ export function ModuleActivityForm({
           />
         </label>
 
-        {sections.length > 0 && (
-          <div className="grid gap-1.5">
-            <span className="text-sm font-medium text-stone-foreground/80">Assign to Classes</span>
+        <div className="grid gap-1.5">
+          <span className="text-sm font-medium text-stone-foreground/80">Assign to Classes</span>
+          {sections.length > 0 ? (
             <div className="grid gap-2 rounded-xl border border-primary/10 bg-black/20 p-3">
               {sections.map((section) => (
                 <label key={section.id} className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors">
@@ -183,7 +216,25 @@ export function ModuleActivityForm({
                 </label>
               ))}
             </div>
-          </div>
+          ) : (
+            <p className="text-sm text-stone-foreground/60">No classes are available. Create a class before creating content.</p>
+          )}
+          {errors.sectionIds && <span className="text-xs text-destructive">{errors.sectionIds}</span>}
+        </div>
+
+        {onPublishChange && (
+          <label className="flex items-center gap-2 rounded-xl border border-primary/10 bg-black/20 p-3 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isPublished ?? false}
+              onChange={(event) => onPublishChange(event.target.checked)}
+              className="h-4 w-4 accent-primary"
+            />
+            <span>
+              <span className="font-medium">Publish now</span>
+              <span className="block text-xs text-stone-foreground/60">Leave unchecked to save this assignment as a draft.</span>
+            </span>
+          </label>
         )}
 
         {children}

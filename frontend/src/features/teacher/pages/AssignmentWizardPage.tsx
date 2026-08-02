@@ -8,6 +8,7 @@ import { TeacherHeader } from "@/features/teacher/components/TeacherHeader";
 import {
   fetchTeacherSections,
   createAssignment,
+  ApiRequestError,
   type TeacherSection,
 } from "@/features/teacher/services/teacherService";
 import type { QuestionData } from "@/features/teacher/components/QuestionBuilder";
@@ -18,6 +19,8 @@ export function AssignmentWizardPage() {
   const [loading, setLoading] = useState(true);
   const [questions, setQuestions] = useState<QuestionData[]>([]);
   const [passingScore, setPassingScore] = useState("");
+  const [isPublished, setIsPublished] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let mounted = true;
@@ -47,6 +50,18 @@ export function AssignmentWizardPage() {
     isPublished: boolean;
     sectionIds: string[];
   }) => {
+    const nextErrors: Record<string, string> = {};
+    if (data.sectionIds.length === 0) nextErrors.sectionIds = "Select at least one class.";
+    questions.forEach((question, index) => {
+      if (!question.equation.trim()) nextErrors[`questions.${index}.equation`] = "Question content is required.";
+      if (!question.correctAnswer.trim()) nextErrors[`questions.${index}.correctAnswer`] = "A correct answer is required.";
+    });
+    if (Object.keys(nextErrors).length > 0) {
+      setFieldErrors(nextErrors);
+      return;
+    }
+
+    setFieldErrors({});
     const baseInput = {
       title: data.title,
       description: data.description,
@@ -68,18 +83,18 @@ export function AssignmentWizardPage() {
     };
 
     try {
-      const firstSectionId = data.sectionIds[0] || sections[0]?.id;
-      if (!firstSectionId) {
-        toast.error("No class available. Create a class first.");
-        return;
-      }
-      for (const sid of data.sectionIds.length > 0 ? data.sectionIds : [firstSectionId]) {
+      for (const sid of data.sectionIds) {
         await createAssignment({ ...baseInput, sectionId: sid });
       }
-      toast.success("Assignment created.");
+      toast.success(data.isPublished ? "Assignment created and published." : "Assignment saved as a draft.");
       goToModules();
-    } catch (error: any) {
-      toast.error(error.message || "Failed to save assignment.");
+    } catch (error) {
+      if (error instanceof ApiRequestError) {
+        setFieldErrors(error.fieldErrors);
+        toast.error(error.message);
+        return;
+      }
+      toast.error("Failed to save assignment.");
     }
   };
 
@@ -102,6 +117,9 @@ export function AssignmentWizardPage() {
         title="New Assignment"
         onSave={handleSaveForm}
         onCancel={goToModules}
+        fieldErrors={fieldErrors}
+        isPublished={isPublished}
+        onPublishChange={setIsPublished}
       >
         <SettingsPanel title="Assignment Settings">
           <SettingsField label="Passing Score">
@@ -119,7 +137,13 @@ export function AssignmentWizardPage() {
         <div className="mt-4">
           <QuestionBuilder
             questions={questions}
-            onChange={setQuestions}
+            onChange={(nextQuestions) => {
+              setQuestions(nextQuestions);
+              setFieldErrors((current) =>
+                Object.fromEntries(Object.entries(current).filter(([key]) => !key.startsWith("questions."))),
+              );
+            }}
+            fieldErrors={fieldErrors}
             allowedTypes={["MULTIPLE_CHOICE", "TRUE_FALSE", "IDENTIFICATION", "SHORT_ANSWER", "ESSAY"]}
           />
         </div>
